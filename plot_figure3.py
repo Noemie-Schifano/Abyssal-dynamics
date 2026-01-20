@@ -1,5 +1,7 @@
 '''
-NS 2022/10/10: need "extract_w_points_time_variability.py" to run before   
+NS: Need "extract_w_points_time_variability.py" to run before   
+    Analysis of vertical velocity time variability at selected points for the standard deviation
+    and vertical sections of w averaged over different time scales    
 '''
 
 import matplotlib
@@ -7,14 +9,12 @@ matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-#plt.rcParams['font.family'] = 'serif'
-#plt.rcParams['text.usetex'] = True
 import matplotlib.gridspec as gridspec
 import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3/')
+sys.path.append('Python_Modules_p3/')
 import R_tools as tools
 import R_tools_fort as toolsF
 import time as time
@@ -30,13 +30,10 @@ matplotlib.rcParams.update({'font.size': 20})
 
 
 # ------------ parameters ------------ 
-file_w_var  = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrexnumsb200_w100m_point_time_variability.nc'
-
-#nlevels = ['50','100','200']
-name_exp    = 'rrexnum200' #['rrex100-up3','rrex100-up5','rrex100-weno5','rrex200-up3','rrex200-up5','rrex200-weno5','rrex300-up3','rrex300-500cpu-up5','rrex300-500cpu-weno5']
-name_exp_path ='rrexnums200_rsup5'#-rsup5'
-#title_exp   = ['a) rrex100-up3','b) rrex100-up5','c) rrex100-weno5','d) rrex200-up3','e) rrex200-up5','f) rrex200-weno5','g) rrex300-up3','h) rrex300-up5','i) rrex300-weno5']
-name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'#RSUP5_NOFILT_T'
+file_w_var  = 'rrexnumsb200_w100m_point_time_variability.nc'
+name_exp    = 'rrexnum200' 
+name_exp_path ='rrexnums200_rsup5'
+name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'
 name_exp_grd= ''
 nbr_levels  = '200'
 name_exp_saveup = name_exp_path
@@ -63,8 +60,7 @@ xap, yap = 800,406
 xlist    = [xrn,xrs,xap]
 ylist    = [yrn,yrs,yap]
 
-#time_week      = np.arange(140,154,2)
-#time_month     = np.arange(140,190,2)
+# time definition
 ndfiles        = 1  # number of days per netcdf
 ndfiles_his    = 2  
 nt             = ndfiles*len(time)
@@ -83,27 +79,22 @@ extent     = [-37.5,-21.2,53,62.5]
 jsec        = [150,450,650]
 cjsec       = ['k','m','r']
 jsec0       = jsec[1]
-#jsec0       = 400
 cjsec0      = cjsec[1]
 
 # -- save figure
 if choice == 'bottom':
-    ptw_savefig = '/home/datawork-lops-rrex/nschifan/Figures/WMT/verticaextract_w_points_time_variability.pyl_slice_jsec_'+str(jsec0)+'mean_month_week_avg_his_w_bottom.png'
+    ptw_savefig = 'vertical_slice_jsec_'+str(jsec0)+'mean_month_week_avg_his_w_bottom.png'
 else:
-    ptw_savefig = '/home/datawork-lops-rrex/nschifan/Figures/WMT/vertical_slice_jsec_'+str(jsec0)+'mean_month_week_avg_his_w_column.png'
+    ptw_savefig = 'vertical_slice_jsec_'+str(jsec0)+'mean_month_week_avg_his_w_column.png'
 
-
-
-
-# --- w ---
-cmap_w     =  plt.cm.RdBu_r #seismic
-pmin,pmax,pint   = -600, 600,1#-5e-3,5e-3,5e-5
-#norm_w        = colors.Normalize(vmin=pmin,vmax=pmax)
+# --- colorbar w ---
+cmap_w     =  plt.cm.RdBu_r 
+pmin,pmax,pint   = -600, 600,1
 norm_w        = colors.SymLogNorm(linthresh=10, linscale=1, vmin=pmin, vmax=pmax,base=10)
 cbticks_w     =  [-1000,-100,-10,0,10,100,1000]
 cblabel_w     = r'w [m day$^{-1}$]'
 
-# --> create variables 
+# --- create variables ---
 # --> y-axis section
 w_week      = np.zeros((nt_week,1002,200))
 w_month     = np.zeros((nt_month,1002,200))
@@ -121,18 +112,16 @@ w_6monthp     = np.zeros((nt_6month,len(xlist)))
 # ------------- function ------------
 def moy(wp, window_size):
 
-    # Créez un noyau de convolution pour la moyenne glissante
+    # Create a convolution kernel for the moving average
     kernel = np.ones(window_size) / window_size
 
-    # Appliquez la convolution sur chaque ligne
+    # Apply the convolution along the time axis (axis=0)
     wp_moy = np.apply_along_axis(lambda x: np.convolve(x, kernel, mode='valid'), axis=0, arr=wp)
 
     return wp_moy
 
-
-
 # ------------ read file points for std(w) ---
-# wp (points,time], averaged w over 100meters above the bottom 
+# wp (points,time]: w averaged over 100 meters above the bottom 
 nc = Dataset(file_w_var,'r')
 wp = nc.variables['w'][:,:]
 nc.close()
@@ -230,116 +219,7 @@ for t_nc in range(len(time_3month)):
                 w_3monthp[tt3m,idx]  = np.nanmean(wint,axis=-1)
         tt3m+=1
 
-'''
-# ----- create for each point, several monthly average ---
-# --> 2 months
-tt2m = ttm
-# --- take from 1 months
-print('2months',len(w_2monthp[:,0]),len(w_monthp[:,0]),ttm)
-for idx in range(len(xlist)):
-    w_2monthp[0:ttm,idx] = w_monthp[:,idx]
-# --- loop to add one month
-for t_nc in range(len(time_2month)):
-    for t in range(ndfiles):
-        data_2m = Croco(name_exp,nbr_levels,str(int(time_2month[t_nc])),name_exp_grd,name_pathdata)
-        print(' ... read avg file data + make plot ... ')
-        data_2m.get_outputs(t,var_list,get_date=False)
-        data_2m.get_grid()
-        data_2m.get_zlevs()
-        hab_2m  = h_tile + data_2m.z_r
-        # ------------ read data ------------ 
-        for idx in range(len(xlist)):
-            if choice=='bottom':
-                w_2monthp[tt2m,idx]  = 3600*24*data_2m.var['w'][xlist[idx],ylist[idx],0]
-            else:
-                wint               = 3600*24*data_2m.var['w'][xlist[idx],ylist[idx],:]
-                wint[hab_2m[xlist[idx],ylist[idx],:]>100]    = np.nan
-                w_2monthp[tt2m,idx]  = np.nanmean(wint,axis=-1)
-        tt2m+=1
 
-# --> 4 months
-tt4m = tt3m
-# --- take from 3 months
-print('4months',len(w_4monthp[:,0]),len(w_3monthp[:,0]),tt3m)
-for idx in range(len(xlist)):
-    w_4monthp[0:tt3m,idx] = w_3monthp[:,idx]
-# --- loop to add one month
-for t_nc in range(len(time_4month)):
-    for t in range(ndfiles):
-        data_4m = Croco(name_exp,nbr_levels,str(int(time_4month[t_nc])),name_exp_grd,name_pathdata)
-        print(' ... read avg file data + make plot ... ')
-        data_4m.get_outputs(t,var_list,get_date=False)
-        data_4m.get_grid()
-        data_4m.get_zlevs()
-        hab_4m  = h_tile + data_4m.z_r
-        # ------------ read data ------------ 
-        for idx in range(len(xlist)):
-            if choice=='bottom':
-                w_4monthp[tt4m,idx]  = 3600*24*data_4m.var['w'][xlist[idx],ylist[idx],0]
-            else:
-                wint               = 3600*24*data_4m.var['w'][xlist[idx],ylist[idx],:]
-                wint[hab_4m[xlist[idx],ylist[idx],:]>100]    = np.nan
-                w_4monthp[tt4m,idx]  = np.nanmean(wint,axis=-1)
-        tt4m+=1
-
-# --> 5 months
-tt5m = tt4m
-# --- take from 4 months
-print('5months',len(w_5monthp[:,0]),len(w_4monthp[:,0]),tt4m)
-for idx in range(len(xlist)):
-    w_5monthp[0:tt4m,idx] = w_4monthp[:,idx]
-# --- loop to add one month
-for t_nc in range(len(time_5month)):
-    for t in range(ndfiles):
-        data_5m = Croco(name_exp,nbr_levels,str(int(time_5month[t_nc])),name_exp_grd,name_pathdata)
-        print(' ... read avg file data + make plot ... ')
-        data_5m.get_outputs(t,var_list,get_date=False)
-        data_5m.get_grid()
-        data_5m.get_zlevs()
-        hab_5m  = h_tile + data_5m.z_r
-        # ------------ read data ------------ 
-        for idx in range(len(xlist)):
-            if choice=='bottom':
-                w_5monthp[tt5m,idx]  = 3600*24*data_5m.var['w'][xlist[idx],ylist[idx],0]
-            else:
-                wint               = 3600*24*data_5m.var['w'][xlist[idx],ylist[idx],:]
-                wint[hab_5m[xlist[idx],ylist[idx],:]>100]    = np.nan
-                w_5monthp[tt5m,idx]  = np.nanmean(wint,axis=-1)
-        tt5m+=1
-
-# --> 6 months
-tt6m = tt5m
-print('6months',len(w_6monthp[:,0]),len(w_5monthp[:,0]),tt5m)
-for idx in range(len(xlist)):
-    w_6monthp[0:tt5m,idx] = w_5monthp[:,idx]
-# --- loop to add one month
-for t_nc in range(len(time_6month)):
-    for t in range(ndfiles):
-        data_6m = Croco(name_exp,nbr_levels,str(int(time_6month[t_nc])),name_exp_grd,name_pathdata)
-        print(' ... read avg file data + make plot ... ')
-        data_6m.get_outputs(t,var_list,get_date=False)
-        data_6m.get_grid()
-        data_6m.get_zlevs()
-        hab_6m  = h_tile + data_6m.z_r
-        # ------------ read data ------------ 
-        for idx in range(len(xlist)):
-            if choice=='bottom':
-                w_6monthp[tt6m,idx]  = 3600*24*data_6m.var['w'][xlist[idx],ylist[idx],0]
-            else:
-                wint               = 3600*24*data_6m.var['w'][xlist[idx],ylist[idx],:]
-                wint[hab_6m[xlist[idx],ylist[idx],:]>100]    = np.nan
-                w_6monthp[tt6m,idx]  = np.nanmean(wint,axis=-1)
-        tt6m+=1
-
-# --- time-averaged ---
-w_weeklyp  = np.nanmean(w_weekp,axis=0)    
-w_monthlyp = np.nanmean(w_monthp,axis=0)
-w_2monthsp = np.nanmean(w_2monthp,axis=0)
-w_3monthsp = np.nanmean(w_3monthp,axis=0)
-w_4monthsp = np.nanmean(w_4monthp,axis=0)
-w_5monthsp = np.nanmean(w_5monthp,axis=0)
-w_6monthsp = np.nanmean(w_6monthp,axis=0)
-'''
 
 # --- time-averaged ---
 w_weekly  = tools.rho2u(np.nanmean(w_week,axis=0))
@@ -397,8 +277,6 @@ for iw in range(200,400,100):
     plt.axhline(y=iw,c='k',linewidth=0.2,alpha=0.5)
 plt.xticks([0,1,2,3,4,5,6,7,8],['1 day','7 days','30 days','60 days',
                                   '90 days','120 days','150 days','180 days','219 days'])
-#                                ['1 day','1 week','1 month','2 months',
-#                                  '3 months','4 months','5 months','6 months','7 months'])
 plt.yscale('log')
 plt.ylim(0,350)
 plt.xticks(rotation=30)

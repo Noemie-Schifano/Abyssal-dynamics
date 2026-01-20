@@ -1,7 +1,8 @@
 '''
-NS 23/07/2024: - Using 7 months time-mean netcdf file
-               - Select areas of upwelling and downwelling
-               - make buoyancy balance in those two areas 
+NS : Need "extract_height_BBL_N2_ijcoord.py" to run before
+     Using 7 months time-mean netcdf file
+     - Select areas of upwelling and downwelling
+     - make buoyancy balance in those two areas 
 '''
 
 import matplotlib
@@ -9,15 +10,12 @@ matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-#plt.rcParams['font.family'] = 'serif'
-#plt.rcParams['text.usetex'] = True
 import matplotlib.gridspec as gridspec
 import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3-master/')
-
+sys.path.append('Python_Modules_p3-master/')
 from Modules import *
 from Modules_gula import *
 import R_tools as tools
@@ -28,22 +26,20 @@ import time as time
 import calendar as cal
 import datetime as datetime
 from croco_simulations_jonathan_ncra_longrun import Croco_longrun
-#from croco_simulations_hist import Croco_hist
 import cartopy.crs as ccrs
 import gsw as gsw
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LongitudeLocator, LatitudeLocator)
-matplotlib.rcParams.update({'font.size': 32})  #28
+matplotlib.rcParams.update({'font.size': 32})  
 from matplotlib.ticker import FormatStrFormatter
 
 # ------------ file BBL -------------
-file_bbl        = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/BBL_height_N2.nc'
-file_n2_bbl     = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrexnumsb200_bottom_bvf.nc'
+file_bbl        = 'BBL_height_N2.nc'
 
 # ------------ parameters ------------ 
-name_exp    = 'rrexnum200' #['rrex100-up3','rrex100-up5','rrex100-weno5','rrex200-up3','rrex200-up5','rrex200-weno5','rrex300-up3','rrex300-500cpu-up5','rrex300-500cpu-weno5']
-name_exp_path ='rrexnums200_rsup5'#-rsup5'
-name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'#RSUP5_NOFILT_T'
+name_exp    = 'rrexnum200' 
+name_exp_path ='rrexnums200_rsup5'
+name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'
 name_exp_grd= ''
 nbr_levels  = '200'
 name_exp_saveup = name_exp_path
@@ -57,9 +53,6 @@ fs      = 30      # fontsize
 lwc     = 0.5
 #choice_list = [r'Upwelling $N^2_{BBL}$>0',r'Downwelling $N^2_{BBL}$>0',r'Upwelling $N^2_{BBL}$<0',r'Downwelling $N^2_{BBL}$<0','All grid']
 choice_list = ['Subdomain A','Subdomain B','Subdomain C','Subdomain D','All grid']
-# Ekman layer height: from "plot_direction_ekman_upwelling_downwelling.py"
-hE         =  [5.420217375823783, 6.6310441113254415, 12.979696951428666, 14.976592277837536,6.294141741679329]
-              #[6.294141741679329, 5.420217375823783, 6.6310441113254415, 12.979696951428666, 14.976592277837536] 
 title_figw  = ['b) '+choice_list[0],'c) '+choice_list[1],'d) '+choice_list[2],'e) '+choice_list[3], 'f) '+choice_list[4]] 
 title_figb  = ['g)','h)','i)','j)','k)']
 levels_h    = np.arange(0,4200,200)
@@ -69,14 +62,9 @@ cf_up_N2neg   = colors.to_rgba('red')
 cf_down_N2neg = colors.to_rgba('blue')
 cf_plot       = [cf_up_N2pos,cf_down_N2pos,cf_up_N2neg,cf_down_N2neg,'k']
 zorder_choice = [1,4,2,3,5]
+
 # ------------ bin for hab ------
 h_e = np.array([ 0,   3,   6,   9,  12,  15,  18,  21,  26,36, 66,  96, 126, 156, 186, 216, 246, 276, 306, 336])
-#h_e =np.array([  0,   3,   6,   9,  12,  15,  18,  21,  24,  27,  30,  33,  36,
-#        39,  42,  52,  62,  72, 82, 92, 102,
-#        132,  162,  192, 222,
-#        252,  282,  312,
-#        342,  372,  402,
-#        432, 462, 492, 522])
 h_c = 0.5*(h_e[1:]+h_e[:-1]) # hab centres
 nbin      = h_c.shape[0]
 gg = 9.81
@@ -213,11 +201,6 @@ nc        = Dataset(file_bbl,'r')
 hab_bbl   = np.ravel(nc.variables['hab_bbl'][:,:])
 N2_bbl    = nc.variables['N2_bbl'][:,:]
 nc.close()
-
-# -- in time ---
-#nc        = Dataset(file_n2_bbl,'r')
-#N2_bbl    = nc.variables['N2_bbl'][:,:,:]
-#nc.close()
 
 
 ##############################################################################################
@@ -485,25 +468,12 @@ for choice in range(len(choice_list)):
            
 # -- masks ---
 kkpp_r[kkpp_r<1e-5]=1e-5
-#keff_r[keff_r<0]=np.nan
 print('bbl N2')
 print(hab_bblt)
 
 print('bbl KPP')
 print(hbbl_r)
 
-# compute Ekman layer height 
-#print('--> Ekman')
-#omega_T = 7.2921e-5 # rotation of Earth
-#k    = 2*omega_T*np.sin(data.latr)
-#f    = np.nanmean(k)
-#print(f)
-#for choice in range(len(choice_list)):
-#    U,V  = abs(u_r[choice,-1]), abs(v_r[choice,-1])
-#    hE[choice] = 0.4*max(U,V)/(30*f)
-#    print(choice_list[choice])
-#    print(U,V)
-#    print(hE[choice])
 
 print(' --------- make plot -------')
 figure = plt.figure(figsize=(40,40))
@@ -528,28 +498,10 @@ plt.scatter(lon_down_N2neg[0],lat_down_N2neg[0],color = cf_down_N2neg,marker='D'
                               label=choice_list[3]+': '+str(round(porc_down_N2neg,2))+r' $\%$ of the grid') # N2<0, downwelling
 ct  = ax.contour(data.h.T,levels=levels_h,colors='k',linewidths=0.8)
 plt.legend(bbox_to_anchor=(1.5,0.75), loc='upper center', ncol=1,fontsize=36) #28
-                               #0.5
-#plt.ylabel('grid-cells in j-direction')#,fontsize=fs)
-#plt.xlabel('grid-cells in i-direction')#,fontsize=fs)
 ax.set_xticks([0,250,500,750,1000],['0','200','400','600','800'])
 ax.set_yticks([0,250,500,750],['0','200','400','600'])
 plt.xlabel(r'km in $\xi$-direction',fontsize=fs)
 plt.ylabel(r'km in $\eta$-direction',fontsize=fs)
-
-#ax = plt.subplot(gs[0,4:]) # ----------------------------------------- slope 
-#plt.title('b)')
-## --> slope on areas 
-#choice_area  = [1,9999,-1,-9999]
-#for choice in range(len(choice_list)):
-#    if choice<4:
-#        hdata = np.ravel(gradh[area_tot==choice_area])
-#    else:
-#        hdata = np.ravel(gradh)
-#    plt.hist(hdata,bins=slope_e,weights=np.ones(len(hdata)) / len(hdata),histtype='step',color=cf_plot[choice],zorder=zorder_choice)
-#plt.ylabel(r' pdf [$\%$]')
-#plt.xlabel(r'Slope [%]')
-#ax.set_xticks([0,0.02,0.04,0.06,0.08,0.1,0.12],['0','2','4','6','8','10','12'])
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 
 ### second line, w
 for choice in range(len(choice_list)):
@@ -562,46 +514,26 @@ for choice in range(len(choice_list)):
     plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.8)
     plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
     plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    #plt.axhline(y=hE[choice],color='b',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
     plt.ylim(0,200)
     if choice==0:
-        #plt.xlim(0,15)
-        #plt.axvline(x=5,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=10,color='k',linewidth=lwc,alpha=0.5)
-        #ax.set_xticks([0,5,10])
         l = np.arange(0,70,10)
         for i in l:
             plt.axvline(x=i,color='k',linewidth=lwc,alpha=0.5)
         ax.set_xticks(l.tolist())
         plt.ylabel('hab [m]')
     elif choice==1:
-        #plt.xlim(-17,0)
-        #plt.axvline(x=-5,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=-10,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=-15,color='k',linewidth=lwc,alpha=0.5)
-        #ax.set_xticks([-15,-10,-5,0])
         l = np.arange(-80,30,20)
         for i in l:
             plt.axvline(x=i,color='k',linewidth=lwc,alpha=0.5)
         ax.set_xticks(l.tolist())
 
     elif choice==2:
-        #plt.xlim(-50,20)
-        #plt.axvline(x=-20,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=-40,color='k',linewidth=lwc,alpha=0.5)
-        #ax.set_xticks([-40,-20,0])
         l = np.arange(-150,70,50)
         for i in l:
             plt.axvline(x=i,color='k',linewidth=lwc,alpha=0.5)
         ax.set_xticks(l.tolist())
 
     elif choice==3:
-        #plt.xlim(0,90)
-        #plt.axvline(x=20,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=40,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=60,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=80,color='k',linewidth=lwc,alpha=0.5)
-        #ax.set_xticks([0,20,40,60,80])
         l = np.arange(0,250,40)
         for i in l:
             plt.axvline(x=i,color='k',linewidth=lwc,alpha=0.5)
@@ -609,10 +541,6 @@ for choice in range(len(choice_list)):
         ax.set_xticks(l2plot)
 
     else:
-        #plt.xlim(-10,10)
-        #plt.axvline(x=5,color='k',linewidth=lwc,alpha=0.5)
-        #plt.axvline(x=-5,color='k',linewidth=lwc,alpha=0.5)
-        #ax.set_xticks([-10,0,10])
         l = np.arange(-60,50,20)
         for i in l:
             plt.axvline(x=i,color='k',linewidth=lwc,alpha=0.5)
@@ -626,13 +554,11 @@ for choice in range(len(choice_list)):
     plt.title(title_figb[ic])
     plt.plot((1e11)*b_rhs_r[choice,:],h_c,color='b',linewidth = 2,label=r'$b_{rhs}$')
     plt.plot((1e11)*b_adv_r[choice,:],h_c,color='r',linewidth = 2,label=r'$b_{adv}$')
-    #plt.plot(b_adv_r[choice,:]+b_rhs_r[choice,:],h_c,color='k',linewidth = 4,label=r'$b_{adv}$+$b_{rhs}$')
     plt.plot((1e11)*b_mean_r[choice,:],h_c,color='y',linewidth = 2,label=r'$b_{adv}^{mean}$')
     plt.plot((1e11)*(b_adv_r[choice,:]-b_mean_r[choice,:]),h_c,color='c',linewidth = 2,label=r'$b_{adv}^{eddy}$')
     plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.8)
     plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
     plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    #plt.axhline(y=hE[choice],color='b',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
     plt.ylim(0,200)
     if ic==0:
         plt.legend(bbox_to_anchor=(3.5,1.3),loc='upper center',ncol=4)
@@ -641,7 +567,7 @@ for choice in range(len(choice_list)):
         plt.xlim(-6,6)
         ax.set_xticks([-6,0,6])
     elif choice==2:
-        plt.axvline(x=20,color='k',linewidth=lwc,alpha=0.5) #2e-10
+        plt.axvline(x=20,color='k',linewidth=lwc,alpha=0.5) 
         plt.axvline(x=40,color='k',linewidth=lwc,alpha=0.5)
         plt.axvline(x=-20,color='k',linewidth=lwc,alpha=0.5)
         plt.axvline(x=-40,color='k',linewidth=lwc,alpha=0.5)
@@ -667,207 +593,7 @@ for choice in range(len(choice_list)):
     ax.tick_params(labelsize=fs)
 
 
-plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/map_and_buoyancy_balance_longrun_upwelling_downelling.png',dpi=200,bbox_inches='tight')
+plt.savefig('figure6.png',dpi=200,bbox_inches='tight')
 plt.close()
 
 
-
-print(' --------- make plot -------')
-figure = plt.figure(figsize=(40,30))
-gs = gridspec.GridSpec(1,5,wspace=0.4,hspace=0.4)
-for choice in range(len(choice_list)):
-    ic = choice
-    ax = plt.subplot(gs[ic]) # --> b
-    # b_rhs+b_adv
-    plt.title(title_figw[ic])
-    plt.plot(1e12*(b_adv_r[choice,:]+b_rhs_r[choice,:]),h_c,color='k',linewidth = 2,label='b_rhs+b_adv')
-    plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    #plt.axhline(y=hE[choice],color='b',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.5)
-    plt.ylim(0,200)
-    plt.xlim(-5,5)
-    plt.axvline(x=2,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=4,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=-2,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=-4,color='k',linewidth=lwc,alpha=0.5)
-    if ic==0:
-        plt.legend(bbox_to_anchor=(2.5,1.1),ncol=4,fontsize=28)
-    if choice==0:
-        plt.ylabel('hab [m]')
-    plt.xlabel(r'b [$10^{-12}$ $m^2$ $s^{-3}$]',fontsize=fs)
-plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/b_rhs_plus_b_adv_longrun_upwelling_downelling.png',dpi=200,bbox_inches='tight')
-plt.close()
-
-
-
-
-
-
-
-
-
-"""
-
-##############################################################################################
-# ---- Make plot ----
-figure = plt.figure(figsize=(40,30))
-gs = gridspec.GridSpec(5,5,wspace=0.4,hspace=0.4)
-for choice in range(len(choice_list)):
-    ic = choice
-    ax = plt.subplot(gs[ic,0]) # --> KKPP, KEFF
-    plt.plot(kkpp_r[choice,:],h_c,color='k',linewidth = 2,label=r'$\kappa_{KPP}$')
-    plt.plot(keff_r[choice,:],h_c,color='r',linewidth = 2,label=r'$\kappa_{eff}$')
-    plt.axvline(x=1e-5,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=1e-4,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=1e-3,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=1e-2,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=1e-1,color='k',linewidth=lwc,alpha=0.5)
-    plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.legend(fontsize=fs)
-    plt.ylim(0,300)
-    plt.xlim(7e-6,1)
-    ax.set_xticks([1e-5,1e-3,1e-1])
-    plt.xscale('log')
-    plt.xlabel(r'$\kappa$ [$m^2$ $s^{-1}$]',fontsize=fs)
-    plt.ylabel('hab [m]',fontsize=fs)
-    plt.title(choice_list[choice],fontsize=fs)
-    ax.tick_params(labelsize=fs)
-
-    ax = plt.subplot(gs[ic,1]) # --> N2
-    plt.plot(N2_r[choice,:],h_c,color='k',linewidth = 2)
-    plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.8)
-    plt.axvline(x=0.5e-6,color='k',linewidth=lwc,alpha=0.5)
-    plt.axvline(x=1e-6,color='k',linewidth=lwc,alpha=0.5)
-    plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.ylim(0,300)
-    plt.xlim(-0.2e-6,1.5e-6)
-    ax.set_xticks([0,0.5e-6,1e-6,1.5e-6])
-    plt.xlabel(r'$N^2$ [$s^{-2}$]',fontsize=fs)
-    ax.tick_params(labelsize=fs)
-
-    ax = plt.subplot(gs[ic,2]) # --> w
-    plt.plot(w_r[choice,:],h_c,color='k',linewidth = 2)
-    plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.8)
-    plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.ylim(0,300)
-    if choice==0:
-        plt.xlim(0,15)
-        plt.axvline(x=5,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=10,color='k',linewidth=lwc,alpha=0.5)
-        ax.set_xticks([0,5,10])
-    elif choice==1:
-        plt.xlim(-17,0)
-        plt.axvline(x=-5,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-15,color='k',linewidth=lwc,alpha=0.5)
-        ax.set_xticks([-15,-10,-5,0])
-    elif choice==2:
-        plt.xlim(-50,20)
-        plt.axvline(x=-20,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-40,color='k',linewidth=lwc,alpha=0.5)
-        ax.set_xticks([-40,-20,0])
-    elif choice==3:
-        plt.xlim(0,90)
-        plt.axvline(x=20,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=40,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=60,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=80,color='k',linewidth=lwc,alpha=0.5)
-        ax.set_xticks([0,20,40,60,80])
-    else:
-        plt.xlim(-10,10)
-        plt.axvline(x=5,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-5,color='k',linewidth=lwc,alpha=0.5)
-        ax.set_xticks([-10,0,10])
-    plt.xlabel(r'w [m $day^{-1}$]',fontsize=fs)
-    ax.tick_params(labelsize=fs)
-
-    ax = plt.subplot(gs[ic,3]) # --> to
-    plt.plot(to_r[choice,:],h_c,color='k',linewidth = 2)
-    plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.8)
-    plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.ylim(0,300)
-    if choice==0:
-        plt.axvline(x=0.010,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.020,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.03,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(0,0.04)
-        ax.set_xticks([0,0.02])
-    elif choice==1:
-        plt.axvline(x=0.02,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.04,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.06,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.08,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(0,0.09)
-        ax.set_xticks([0,0.02,0.04,0.06,0.08],['0','0.02','0.04','0.06','0.08'])
-    elif choice==2:
-        plt.axvline(x=0.20,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.40,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(0,0.5)
-        ax.set_xticks([0,0.2,0.4])
-    elif choice==3:
-        plt.axvline(x=0.10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.20,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.3,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(0,0.32)
-        ax.set_xticks([0,0.1,0.2,0.3])#,['0','0.02','0.04','0.06'])
-    else:
-        plt.axvline(x=0.02,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.04,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.06,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(0,0.07)
-        ax.set_xticks([0,0.02,0.04,0.06],['0','0.02','0.04','0.06'])
-    plt.xlabel(r'$\tau$ [cm $s^{-1}$]',fontsize=fs)
-    ax.tick_params(labelsize=fs)
-
-    ax = plt.subplot(gs[ic,4]) # --> b
-    plt.plot(b_rhs_r[choice,:],h_c,color='b',linewidth = 2,label='b_rhs')
-    plt.plot(b_adv_r[choice,:],h_c,color='r',linewidth = 2,label='b_adv')
-    plt.plot(b_mean_r[choice,:],h_c,color='y',linewidth = 2,label=r'$-\overline{\mathbf{u}} \cdot \overline{\mathbf{\nabla} b}}$')
-    plt.plot(b_adv_r[choice,:]-b_mean_r[choice,:],h_c,color='c',linewidth = 2,label=r'$-\overline{\mathbf{u^\prime} \cdot \mathbf{\nabla} b^\prime}$')
-    plt.axvline(x=0,color='k',linewidth=lwc,alpha=0.8)
-    plt.axhline(y=hab_bblt[choice],color='k',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.axhline(y=hbbl_r[choice],color='r',linewidth=lwc+1,linestyle='dashed',alpha=0.5)
-    plt.ylim(0,300)
-    plt.legend(loc='upper center',fontsize=14)
-    if choice==2:
-        plt.axvline(x=2e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=4e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-2e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-4e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(-2.5e-10,6e-10)
-        ax.set_xticks([-4e-10,-2e-10,0,2e-10,4e-10])
-    elif choice==3:
-        plt.axvline(x=1e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=2e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-1e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-2e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(-2.5e-10,3e-10)
-        ax.set_xticks([-2e-10,-1e-10,0,1e-10,2e-10])
-    else:
-        plt.axvline(x=0.2e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=0.4e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-0.2e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-0.4e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-0.6e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.axvline(x=-0.8e-10,color='k',linewidth=lwc,alpha=0.5)
-        plt.xlim(-1e-10,0.6e-10)
-        ax.set_xticks([-1e-10,-0.6e-10,0,0.6e-10])
-    plt.xlabel(r'b [$m^2$ $s^{-3}$]',fontsize=fs)
-    ax.tick_params(labelsize=fs)
-
-    print(choice_list[choice])
-    print('bmean/beddy',b_mean_r[choice,0]/(b_adv_r[choice,0]-b_mean_r[choice,0]))
-    print('badv/brhs',b_adv_r[choice,0]/b_rhs_r[choice,0])
-
-plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/rrexnumsb200-rsup5_buoyancy_balance_mean_upwelling_downelling.png',dpi=200,bbox_inches='tight')
-plt.close()
-
-
-
-
-"""

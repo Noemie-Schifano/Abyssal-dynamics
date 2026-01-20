@@ -1,9 +1,11 @@
 '''
-CV 2019/10/28: compute u,v,T,S PSD on time series and as function of time  
-CV 2020/01/15: add the option to use L3 data to plot frequency-depth PSD 
-               to avoid interpolation noise between instruments 
-CV 2020/02/05: enable comparison with L2 data 
-CV 2020/08/24: adds the option to use a WKB stretching factor, as Eq (1) in Alford and Whitmont 2007
+NS: Horizontal map of:
+        - the slope
+        - the standard deviation of the bottom vertical velocity
+    Standard deviation of the vertical velocity as a function of the slope
+    PSD of the vertical velocity at the deepest measurement of the mooring
+        RRT and the interpolation from CROCO, both following the no-normal flow condition
+        
 '''
 import numpy as np
 import matplotlib
@@ -18,7 +20,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable # colorbar
 from netCDF4 import Dataset
 import gsw as gsw 
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3/')
+sys.path.append('Python_Modules_p3/')
 import R_tools as tools
 from croco_simulations_jonathan_ncra_longrun import Croco_longrun
 matplotlib.rcParams.update({'font.size': 20})
@@ -41,15 +43,14 @@ else:
 choice_mooring  = ['IRW','IRM','IRE','RRT','ICW','ICM','ICE']
 stations        = len(choice_mooring)
 nr              = [30,  3, 66, 93, 63, 29, 29] # number of measures for each mooring
-file_data_d     = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrex_dD_10km.nc'
-file_data       = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/RREX_'
+file_data_d     = 'rrex_dD_10km.nc'
+file_data       = 'RREX_'
 end_nc          = '_CURR_hourly.nc'
-file_croco      = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrex_bottom_w_mooring_notracer.nc'
-# --> collocato CROCO and moorings, from 'plot_data_Rene.py'
+file_croco      = 'rrex_bottom_w_mooring_notracer.nc'
 idx_lon, idx_lat= [191, 266, 309, 373, 438, 503, 599],[363, 387, 402, 416, 400, 385, 361]
 
 
-ti,tf = 24166,24166+365   # days 2016-03-01 to 2017-03-01 for the monthly/season psd
+ti,tf = 24166,24166+365  
 list_moorings = ['RRT'] 
 M2 = 1./44700. # [sec] 
 S2 = 1./43200. 
@@ -72,7 +73,6 @@ title_mooring        = ['a) '+choice_mooring[0] , 'b) '+choice_mooring[1] , 'c) 
                                                   'd) '+choice_mooring[3] , 'e) '+choice_mooring[4] , 
                                                   'f) '+choice_mooring[5] , 'g) '+choice_mooring[6]]
 fs             = 20 #  psd season 
-#fs             = 10
 raster         = True 
 
 
@@ -247,12 +247,10 @@ for mooring in range(stations):
     print(mooring)
     print(wc_m)
     if plot_psd_all:
-        #for m in range(np.shape(w_m)[0]): #m: time
         tmp =  np.copy(w_m)
         if tmp[~np.isnan(tmp)].shape[0]==tmp.shape[0]: # length of no-nan values of tmp
             [freqr[mooring,:],psdr[mooring,:]] = sig.welch(w_m,fsamp, window='hanning',nperseg=nperseg_m)
 
-        #for mc in range(np.shape(wc_m)[0]):
         tmp =  np.copy(wc_m)
         if tmp[~np.isnan(tmp)].shape[0]==tmp.shape[0]: # length of no-nan values of tmp
              [freqrc[mooring,:],psdrc[mooring,:]] = sig.welch(wc_m,fsampc, window='hanning',nperseg=nperseg_c)
@@ -260,25 +258,15 @@ for mooring in range(stations):
 
 # --- band-pass filtering --- 
 fi    = gsw.f(lat[mooring])/(2*np.pi)
-c     = 1.07 # Alford's parameter is 1.25 
+c     = 1.07                                # Alford's parameter is 1.25 
 Wn_M2 = np.array([(1./c)*M2,c*M2])*(2*dt)   # cutoff freq, normalized [0,1], 1 is the Nyquist freq 
 Wn_fi = np.array([(1./c)*fi,c*fi])*(2*dt)   # cutoff freq, normalized [0,1], 1 is the Nyquist freq 
-SD = 0.5*(M2+S2) # semi-diurnal frequencies 
+SD = 0.5*(M2+S2)                            # semi-diurnal frequencies 
 Wn_SD = np.array([(1./c)*SD,c*SD])*(2*dt)   # cutoff freq, normalized [0,1], 1 is the Nyquist freq 
 
 # ------------ make plots ------------ 
 print(' ... make plot ... ') 
 if plot_psd_all   :
-    # - compute confidence interval - 
-    #noverlap = nperseg//2 # default  
-    #step     = nperseg-noverlap
-    #nseg     = (30*24-noverlap)//step # number of segments, see _fft_helper in spectral.py 
-    #print('number of segments: ',nseg)
-    #ci       = 0.95
-    #alpha    = 1-ci
-    #cc       = nseg/stats.chi2.ppf([1-alpha/2,alpha/2],nseg)
-    #psd_lo   = psdr*cc[0] # lower bound on CI 
-    #psd_up   = psdr*cc[1] # upper bound on CI
     cpd   = 2*freqr/M2
     cpdc  = 2*freqrc/M2
     cpdM2 = 2. # [sec] 
@@ -325,7 +313,6 @@ if plot_psd_all   :
 
 
         plt.ylim(ymin,ymax)
-        #plt.xlim(1e-7,1e-4)
         ax.tick_params(labelsize=fs)
 
         if column==2:
@@ -365,8 +352,8 @@ if plot_psd_std == True:
 
     
     # --- STD w ---
-    cmap_w     =  plt.cm.nipy_spectral #seismic
-    pmin,pmax,pint   = 0,200,1#-5e-3,5e-3,5e-5
+    cmap_w     =  plt.cm.nipy_spectral 
+    pmin,pmax,pint   = 0,200,1
     levels_w      = np.arange(pmin,pmax+pint,pint)
     norm_w        = colors.Normalize(vmin=pmin,vmax=pmax)
     cbticks_w     =  [0,50,100,150,pmax]
@@ -375,15 +362,15 @@ if plot_psd_std == True:
     # - bin for slope ------
     minc      = 0
     maxc      = 0.122
-    nce       = 0.002       # 0.0085
-    slope_e    = np.arange(minc,maxc,nce) # np.linspace(minc,maxc,num=nbin)
+    nce       = 0.002      
+    slope_e    = np.arange(minc,maxc,nce) 
     slope_c    = 0.5*(slope_e[1:]+slope_e[:-1])  # bin center 
 
     # ------------ norm gradh ----
     cmap_gradh    = plt.cm.copper_r
     norm_gradh    = colors.Normalize(vmin=0,vmax=0.12)
     levels_gradh  = np.arange(0,0.121,0.01)
-    cbticks_gradh = [0,0.06,0.12]#,0.06] #[-3000,-2000,-1000] 
+    cbticks_gradh = [0,0.06,0.12]
     cblabel_gradh = r'slope'
     levels_hplot  = np.arange(0,4500,500)
 
@@ -435,15 +422,13 @@ if plot_psd_std == True:
     # --------------> make plot <----------------- #
     print( '--- MAKE PLOT ---')
     plt.figure(figsize=(20,20)) 
-    gs = gridspec.GridSpec(3,2,height_ratios=[1,0.05,1],wspace=0.15)#,hspace=0.3) 
+    gs = gridspec.GridSpec(3,2,height_ratios=[1,0.05,1],wspace=0.15)
                                                                   
     ax = plt.subplot(gs[0,0])  # ---> sigma slope
     plt.gca().set_aspect('equal', adjustable='box')
     plt.title('a)')
     ctf00 = ax.contourf(gradh_ns.T,levels=levels_gradh,cmap=cmap_gradh,norm=norm_gradh)
     ax.contour(h.T,levels=levels_hplot,colors='k',linewidths=lw_c)
-    #plt.ylabel('grid-cells in j-direction',fontsize=fs)
-    #plt.xlabel('grid-cells in i-direction',fontsize=fs)
     ax.set_xticks([0,250,500,750,1000],['0','200','400','600','800'])
     ax.set_yticks([0,250,500,750],['0','200','400','600'])
     plt.xlabel(r'km in $\xi$-direction',fontsize=fs)
@@ -453,8 +438,8 @@ if plot_psd_std == True:
 
     # ------------------ colorbar slope 
     cax = plt.subplot(gs[1,0])
-    cb  = plt.colorbar(ctf00,cax,orientation='horizontal',ticks=cbticks_gradh)#,ticks=cbticks_h)
-    cb.set_label(cblabel_gradh,fontsize=fs,labelpad=-80) #-100
+    cb  = plt.colorbar(ctf00,cax,orientation='horizontal',ticks=cbticks_gradh)
+    cb.set_label(cblabel_gradh,fontsize=fs,labelpad=-80) 
     cb.ax.tick_params(labelsize=fs)
 
 
@@ -463,7 +448,6 @@ if plot_psd_std == True:
     plt.title('b)')
     ctf01 = ax.pcolormesh(std_w.T,cmap=cmap_w,zorder=1,norm=norm_w,)
     bathy = ax.contour(h.T,levels =[1000,2000,3000,4000] , colors='gray',linewidths= lw_c)
-    #plt.xlabel('grid-cells in i-direction',fontsize=fs)
     ax.set_xticks([0,250,500,750,1000],['0','200','400','600','800'])
     ax.set_yticks([0,250,500,750])
     plt.xlabel(r'km in $\xi$-direction',fontsize=fs)
@@ -479,19 +463,18 @@ if plot_psd_std == True:
     plt.plot(std_bin_md_slope,slope_c,color=cf0,linewidth=lw,label=r'Median')
     plt.plot(std_bin_10p_slope,slope_c,color=cf0,linestyle='dashed',linewidth=lw,label=r'$10^{th}$,$90^{th}$ percentiles')
     plt.plot(std_bin_90p_slope,slope_c,color=cf0,linestyle='dashed',linewidth=lw)
-    plt.legend() #fontsize=fs-8) #[0.5, 1.1]
+    plt.legend() 
     print('----> DATA')
     print(std_data,gradh_ns[idx_lon,idx_lat])
     for u in range(stations):
         if u==0:
             plt.scatter(std_data[u],gradh_ns[idx_lon[u],idx_lat[u]],s=15,marker='D',c='k',label='Deepest measure from moorings')
             texta = choice_mooring[u]
-            ax.text(4,gradh_text[u],texta,fontsize=fs,color='k') #3
+            ax.text(4,gradh_text[u],texta,fontsize=fs,color='k') 
         else:
             plt.scatter(std_data[u],gradh_ns[idx_lon[u],idx_lat[u]],s=15,marker='D',c=cf_data[u-1])
             texta = choice_mooring[u]
             ax.text(4,gradh_text[u],texta,fontsize=fs,color=cf_data[u-1])
-    #plt.legend(bbox_to_anchor=[0.5, -0.3],loc='right')
     for k in range(1,10):
         plt.axvline(x=k,color='k',linewidth=0.5,alpha=0.2)
     for k in range(10,100,10):
@@ -555,7 +538,7 @@ if plot_psd_std == True:
     ax.tick_params(labelsize=fs)
     
 
-    plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/std_bottom_w_mean00010-0229.png',dpi=180,bbox_inches='tight')
+    plt.savefig('figure5.png',dpi=180,bbox_inches='tight')
     plt.close()
 
 

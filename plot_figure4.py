@@ -1,5 +1,7 @@
 ''''
-NS 2024/04/12: need "extract_bottom_w_moorings_croco_notracer.py" to run before   
+NS 2024/04/12: Need "extract_bottom_w_moorings_croco_notracer.py" to run before   
+               Histogramms of the deepest vertical velocity from the no-normal flow condition w at mooring locations
+                       and interpolated with croco model output
 '''
 
 import matplotlib
@@ -12,7 +14,7 @@ import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3/')
+sys.path.append('Python_Modules_p3/')
 import R_tools as tools
 import R_tools_fort as toolsF
 import time as time
@@ -30,30 +32,30 @@ from matplotlib.ticker import FormatStrFormatter
 
 # ------------ parameters in-situ ------------ 
 choice_mooring  = ['IRW','IRM','IRE','RRT','ICW','ICM','ICE']
-file_data_d     = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrex_dD_10km.nc'
-file_data       = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/RREX_'
-file_croco      = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrex_bottom_w_mooring_notracer.nc'
+file_data_d     = 'rrex_dD_10km.nc'
+file_data       = 'RREX_'
+file_croco      = 'rrex_bottom_w_mooring_notracer.nc'
 label_croco     = ['-2104 m','-1603 m', '-1519 m', '-1449 m', '-2104 m',
-                         '-2212 m', '-2379 m' ]   # Dd from "plot_bottom_w_moorings_croco.py"
-hab_moorings    = ['100','93', '116','81','57','46','282']  #['3','1','3','2','5','2','2']
+                         '-2212 m', '-2379 m' ]  # Dd
+hab_moorings    = ['100','93', '116','81','57','46','282']  
 end_nc          = '_CURR_hourly.nc'
-file_out        = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrex_u_v_full.nc'
+file_out        = 'rrex_u_v_full.nc'
+
 # ------------ parameters croco ------------ 
 name_exp    = 'rrexnum200' 
 name_exp_path ='rrexnum200_rsup5'
 name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'
 nbr_levels  = '200'
 name_exp_grd= ''
-
 ndfiles     = 1  # number of days per netcdf
 time= ['20']
 var_list = ['w','zeta','u','v']
 
 # --- plot options --- 
 jsec    = 400
-fs      = 20       # fontsize 
+fs      = 20    # fontsize 
 lw      = 2     # linewidth
-ms      = 20      # markersize 
+ms      = 20    # markersize 
 lw_c    = 0.2   # linewidth coast 
 my_bbox = dict(fc='w',ec='k',pad=2,lw=0.,alpha=0.5)
 res   = 'h' # resolution of the coastline: c (coarse), l (low), i (intermediate), h (high)
@@ -72,12 +74,11 @@ dz = 10. # [m]
 zbine = np.arange(-5000,dz,dz)     # bin edges 
 zbinc = 0.5*(zbine[1:]+zbine[:-1]) # bin centres 
 nz    = zbinc.shape[0]
-# - regrid in height-above-bottom (hab) coordinates - 
+ 
 
 # --- bin w
 dw  = 2. # [m/day]
 w_e = np.arange(-750,750+dw,dw)
-
 
 # ---------> choose w or u.grad(h)
 list_choice = ['w','w_from_u']
@@ -186,8 +187,7 @@ D       = ncd.variables['D'][:]
 ncd.close()
 
 print('depth ')
-print([np.mean(d_irw),np.mean(d_irm),np.mean(d_ire),np.mean(d_rrt),np.mean(d_icw),np.mean(d_icm),np.mean(d_ice)])
-print(D)
+
 # ----------- compute_w  ---------
 w_irw = -1*(u_irw*dDdx[0]+v_irw*dDdy[0])*3600*24
 w_irm = -1*(u_irm*dDdx[1]+v_irm*dDdy[1])*3600*24
@@ -252,7 +252,6 @@ data = w_irw
 plt.hist(data,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='Mooring')
 data = wc_irw
 plt.hist(data,weights=np.ones(len(data))/len(data),color=cf0,alpha=alpha_plot,label='CROCO')
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
 plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
@@ -262,7 +261,6 @@ plt.axvline(x=300,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=-100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=-200,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=-300,color='k',linewidth=1,alpha=0.2)
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 m= 0
 plt.axvline(x=med[m],color='r',linewidth=2)
 plt.axvline(x=med[m]+std[m],color='r',linewidth=2,linestyle='dashed')
@@ -271,12 +269,11 @@ plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
+
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter(1))
 
 ax = plt.subplot(gs[1])  ########################## IRM
 plt.title('b) IRM, hab = '+hab_moorings[1] +' m',fontsize=fs)
@@ -284,9 +281,7 @@ data = w_irm
 plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_irm
 plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
-#plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=200,color='k',linewidth=1,alpha=0.2)
@@ -301,14 +296,13 @@ plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
+
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter(1))
+
 
 ax = plt.subplot(gs[2])  ########################## IRE
 plt.title('c) IRE, hab = '+hab_moorings[2] +' m',fontsize=fs)
@@ -316,9 +310,7 @@ data = w_ire
 plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_ire
 plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
-#plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=200,color='k',linewidth=1,alpha=0.2)
@@ -333,14 +325,12 @@ plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter(1))
+
 
 ax = plt.subplot(gs[3])  ########################## RRT
 plt.title('d) RRT, hab = '+hab_moorings[3] +' m',fontsize=fs)
@@ -348,9 +338,7 @@ data = w_rrt
 plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_rrt
 plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
-#plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=200,color='k',linewidth=1,alpha=0.2)
@@ -365,14 +353,12 @@ plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter(1))
+
 
 ax = plt.subplot(gs[4])  ########################## ICW
 plt.title('e) ICW, hab = '+hab_moorings[4] +' m',fontsize=fs)
@@ -380,9 +366,7 @@ data = w_icw
 plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_icw
 plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
-#plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=200,color='k',linewidth=1,alpha=0.2)
@@ -397,14 +381,12 @@ plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter(1))
+
 
 ax = plt.subplot(gs[5])  ########################## ICM
 plt.title('f) ICM, hab = '+hab_moorings[5] +' m',fontsize=fs)
@@ -412,9 +394,7 @@ data = w_icm
 plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_icm
 plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
-#plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=200,color='k',linewidth=1,alpha=0.2)
@@ -429,14 +409,12 @@ plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-#plt.gca().yaxis.set_minor_formatter(FormatStrFormatter(1))
+
 
 ax = plt.subplot(gs[6])  ########################## ICE
 plt.title('g) ICE, hab = '+hab_moorings[6] +' m',fontsize=fs)
@@ -444,11 +422,7 @@ data = w_ice
 plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_ice
 plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
-#plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.ylabel(r' pdf [$\%$]')
-#plt.hist(w_aice,bins=w_e,color='m',alpha=alpha_plot,label='-2300 m')
-#plt.hist(wc_ice,bins=w_e,color=cf0,alpha=alpha_plot,label=label_croco[6])
-#plt.legend(loc='upper right')
 plt.xlabel(label_w)
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
@@ -464,17 +438,15 @@ plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
-#plt.axvline(x=400,color='k',linewidth=1,alpha=0.2)
 plt.xlim(-310,310)
-#plt.gca().set_ylim(1e-5,1e-1)
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 if plot_log == True:
-    plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/moorings_croco_bottom_w_hist.png',dpi=180,bbox_inches='tight')
+    plt.savefig('figure4.png',dpi=180,bbox_inches='tight')
 else:
-    plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/moorings_croco_bottom_w_hist_nolog.png',dpi=180,bbox_inches='tight')
+    plt.savefig('figure4_nolog.png',dpi=180,bbox_inches='tight')
 plt.close()
 
 
