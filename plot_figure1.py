@@ -1,5 +1,5 @@
 '''
-NS 19/02
+NS: Plot horizontal map to introduce the studied domain
 '''
 ###
 import matplotlib
@@ -32,17 +32,17 @@ matplotlib.rcParams.update({'font.size': 28})
 
 
 # ------------ parameters ------------ 
-name_exp    = 'rrexnum200' #['rrex100-up3','rrex100-up5','rrex100-weno5','rrex200-up3','rrex200-up5','rrex200-weno5','rrex300-up3','rrex300-500cpu-up5','rrex300-500cpu-weno5']
-name_exp_path ='rrexnums200_rsup5'#-rsup5'
-name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'#RSUP5_NOFILT_T'
+name_exp    = 'rrexnum200' 
+name_exp_path ='rrexnums200_rsup5'
+name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'
 name_exp_grd= ''
 nbr_levels  = '200'
 name_exp_saveup = name_exp_path
 var_list = ['zeta','u','v']
 choice_listp = ['IRW','IRM','IRE','RRT','ICW','ICM','ICE']
-file_topo  = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/topo15_NorthAtl.nc'
-file_nc_croco_where_mooring = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnum200-rsup5_Keff_AKt_rrex-middleline.nc'
-file_data_full              = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrex_twd_full.nc'
+file_topo  = 'topo15_NorthAtl.nc'
+file_nc_croco_where_mooring = 'rrexnum200-rsup5_Keff_AKt_rrex-middleline.nc'
+file_data_full              = 'rrex_twd_full.nc'
 time        = ['40']
 ndfiles     = 1 # number of days per netcdf
 nt = len(time)*ndfiles
@@ -64,17 +64,17 @@ h_e    = np.arange(minc,maxc,nce) # np.linspace(minc,maxc,num=nbin)
 h_c    = 0.5*(h_e[1:]+h_e[:-1])  # bin center  
 
 # ------------ norm bathymetry -------------
-cmap_h         = plt.cm.terrain_r #jet_r #gray
+cmap_h         = plt.cm.terrain_r 
 norm_h         = colors.Normalize(vmin=0,vmax=5000)
 levels_h       = np.arange(0,5500,500)
 levels_hplot   = np.arange(0,4000,500)
-cbticks_h      = [0,1000,2000,3000,4000] #[-3000,-2000,-1000] 
+cbticks_h      = [0,1000,2000,3000,4000] 
 cblabel_h      = 'Bathymetry [m]'
 # ------------ norm gradh ----
 cmap_gradh    = plt.cm.copper_r
 norm_gradh    = colors.Normalize(vmin=0,vmax=0.12)
 levels_gradh  = np.arange(0,0.121,0.01)
-cbticks_gradh = [0,0.06,0.12]#,0.06] #[-3000,-2000,-1000] 
+cbticks_gradh = [0,0.06,0.12] 
 cblabel_gradh = r'slope'
 
 # ---> points 
@@ -83,9 +83,6 @@ xrs, yrs    = 278,134 # tracer 6
 xap, yap    = 800,406
 xdeep,ydeep = 951, 3 
 hdeep       = '3663.29'
-#xx  = [304,295,303,148,137,105,66,641,653,434,628]
-#yy  = [715,602,524,223,346,100,296,292,555,113,199]
-#choice_list = ['r1','r2','r3','c1','c2','c3','c4','m1','m2','f1','b1'] # --> r: ridge, c: canyon 
 
 
 def make_line(lonctd,latctd,lonr,latr):
@@ -167,30 +164,25 @@ index = [250,250,450,450,250]
 index2 = [600,700,700,600,600]
 x = [data.lonr[index[0],index2[0]],data.lonr[index[1],index2[1]],data.lonr[index[2],index2[2]],data.lonr[index[3],index2[3]],data.lonr[index[4],index2[4]]]
 y = [data.latr[index[0],index2[0]],data.latr[index[1],index2[1]],data.latr[index[2],index2[2]],data.latr[index[3],index2[3]],data.latr[index[4],index2[4]]]
-ax.fill(x, y, transform=ccrs.PlateCarree(), color='r',linewidth=2,fill=False,zorder=3)#, hatch='\\\\\\\\\\\\')#,alpha=0.5)
+ax.fill(x, y, transform=ccrs.PlateCarree(), color='r',linewidth=2,fill=False,zorder=3)
 
-# --- line for vertical section mean currents 
-#plt.plot(data.lonr[:,600],data.latr[:,600],'r--',lw=1, transform=ccrs.PlateCarree())
-#plt.plot(data.lonr[:,700],data.latr[:,700],'r--',lw=1, transform=ccrs.PlateCarree())
 
 # ---> area above ridge
 index = [225,225,425,425,225]
 index2 = [100,200,200,100,100]
 x = [data.lonr[index[0],index2[0]],data.lonr[index[1],index2[1]],data.lonr[index[2],index2[2]],data.lonr[index[3],index2[3]],data.lonr[index[4],index2[4]]]
 y = [data.latr[index[0],index2[0]],data.latr[index[1],index2[1]],data.latr[index[2],index2[2]],data.latr[index[3],index2[3]],data.latr[index[4],index2[4]]]
-ax.fill(x, y, transform=ccrs.PlateCarree(), color='k',linewidth=2,fill=False,zorder=3)#, hatch='\\\\\\\\\\\\')#,alpha=0.5)
+ax.fill(x, y, transform=ccrs.PlateCarree(), color='k',linewidth=2,fill=False,zorder=3)
 
 # --> area above abyssal plain
 index = [700,700,900,900,700]
 index2 = [400,500,500,400,400]
 x = [data.lonr[index[0],index2[0]],data.lonr[index[1],index2[1]],data.lonr[index[2],index2[2]],data.lonr[index[3],index2[3]],data.lonr[index[4],index2[4]]]
 y = [data.latr[index[0],index2[0]],data.latr[index[1],index2[1]],data.latr[index[2],index2[2]],data.latr[index[3],index2[3]],data.latr[index[4],index2[4]]]
-ax.fill(x, y, transform=ccrs.PlateCarree(), color='m',linewidth=2,fill=False,zorder=3)#, hatch='\\\\\\\\\\\\')#,alpha=0.5)
+ax.fill(x, y, transform=ccrs.PlateCarree(), color='m',linewidth=2,fill=False,zorder=3)
 
 # - plot points in situ measurements from CROCO -
 plt.scatter(lon_full,lat_full,marker='^',s=30,linewidth=3,color='m',zorder=4,transform=ccrs.PlateCarree(),label='Moorings')
-#lat_listp    = [-0.5,-0.9,-1.1,0.9,0.7,0.5,0.5]
-#lon_listp    = [-0.5,-0.7,-0.7,0.1,0.1,0.1,0.1]
 lat_listp    = [-0.35,-0.5,-0.5,0.4,0.3,0.1,0.1]
 lon_listp    = [-1,-0.8,-0.3,0.3,0.3,0.3,0.3]
 for k in range(len(choice_listp)):
@@ -210,16 +202,10 @@ plt.plot(data.lonr[:,ydeep],data.latr[:,ydeep],color='b',lw=2*lw,linestyle='dott
 plt.plot(data.lonr[:,450],data.latr[:,450],color='b',lw=2*lw,linestyle='dashed',zorder=3,transform=ccrs.PlateCarree())
 
 
-# --> plot lines bathy moorings CROCO
-#plt.plot(data.lonr[ii1,jj1],data.latr[ii1,jj1],color=cf,lw=2*lw,zorder=3,transform=ccrs.PlateCarree(),label=r'CROCO, $1^{st}$ segment')
-#plt.plot(data.lonr[ii2,jj2],data.latr[ii2,jj2],color=cf,linestyle='dashed',lw=2*lw,zorder=3,transform=ccrs.PlateCarree(),label=r'CROCO, $2^{nd}$ segment')
-#plt.legend(frameon=False,loc='lower left',prop={'size':fs})
-
 # --- legend axes ---
 gl.top_labels = False
 gl.right_labels = False
 gl.xlocator = LongitudeLocator()
-#gl.xlocator = ticker.FixedLocator([-34, -30, -26])
 gl.ylocator = LatitudeLocator()
 gl.xformatter = LongitudeFormatter()
 gl.yformatter = LatitudeFormatter()
@@ -232,7 +218,7 @@ cb.set_label(cblabel_h,fontsize=fs,labelpad=-120)
 cb.ax.tick_params(labelsize=fs)
 
 
-plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/map_rrexnums200.png',dpi=200,bbox_inches='tight')
+plt.savefig('figure1.png',dpi=200,bbox_inches='tight')
 plt.close()
 
 
