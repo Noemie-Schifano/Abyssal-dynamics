@@ -1,5 +1,5 @@
 '''
-NS 2022/10/10: is negative concentration ??   
+NS: Vertical grid resolution at the deepest point of the domain 
 '''
 
 import matplotlib
@@ -7,41 +7,32 @@ matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-#plt.rcParams['font.family'] = 'serif'
-#plt.rcParams['text.usetex'] = True
 import matplotlib.gridspec as gridspec
 import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3/')
+sys.path.append('Python_Modules_p3/')
 import R_tools as tools
 import R_tools_fort as toolsF
 import time as time
 import calendar as cal
 import datetime as datetime
 from croco_simulations_jonathan import Croco
-#from croco_simulations_hist import Croco_hist
 import cartopy.crs as ccrs
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LongitudeLocator, LatitudeLocator)
 matplotlib.rcParams.update({'font.size': 14})
 
 # ------------ parameters ------------ 
-#nlevels = ['50','100','200']
-name_exp    = 'rrexnum200' #['rrex100-up3','rrex100-up5','rrex100-weno5','rrex200-up3','rrex200-up5','rrex200-weno5','rrex300-up3','rrex300-500cpu-up5','rrex300-500cpu-weno5']
-name_exp_path ='rrexnums200_rsup5'#-rsup5'
-#title_exp   = ['a) rrex100-up3','b) rrex100-up5','c) rrex100-weno5','d) rrex200-up3','e) rrex200-up5','f) rrex200-weno5','g) rrex300-up3','h) rrex300-up5','i) rrex300-weno5']
-name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'#RSUP5_NOFILT_T'
+name_exp    = 'rrexnum200' 
+name_exp_path ='rrexnums200_rsup5'
+name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'
 name_exp_grd= ''
 nbr_levels  = '200'
 name_exp_saveup = name_exp_path
 var_list = ['zeta']
-time        =  ['10']#,'11','12','13','14','15','16','17','18','19','20',
-                    #'21','22','23','24','25','26','27','28','29','30',
-                    #'31','32','33','34','35','36','37','38','39','40',
-                    #'41','42','43','44','45','46','47','48','49','50',
-                    #'51']
+time        =  ['10']
 ndfiles     = 1  # number of days per netcdf
 nt          = ndfiles*len(time)
 # points, same as for time variation
@@ -50,16 +41,16 @@ xrs, yrs = 278,134 # tracer 6
 xap, yap = 800,406
 
 # --- plot options --- 
-fs      = 14      # fontsize 
+fs      = 14          # fontsize 
 lon_0,lat_0= -32,57.5 # centre of the map a
 extent     = [-37.5,-21.2,53,62.5]
 
 # --> colorbar bathymetry 
-cmap_h         = plt.cm.jet_r #gray
+cmap_h         = plt.cm.jet_r 
 norm_h         = colors.Normalize(vmin=0,vmax=4000)
 levels_h       = np.arange(0,4200,200)
 levels_hplot   = np.arange(0,4000,500)
-cbticks_h      = [0,1000,2000,3000,4000] #[-3000,-2000,-1000] 
+cbticks_h      = [0,1000,2000,3000,4000]  
 cblabel_h      = 'h [m]'
 
 # --> colorbar dz
@@ -89,7 +80,7 @@ jsec = jdeep
 plt.figure(figsize=(15,10))
 gs = gridspec.GridSpec(2,2,height_ratios=[1,0.05],width_ratios=[1,0.35],hspace=0.6,wspace=0.3)# including colorbars  
 
-ax = plt.subplot(gs[0,0])#,lat_0)) # --------- horizontal map of bathymetry
+ax = plt.subplot(gs[0,0]) # --------- horizontal map of bathymetry
 plt.title('a)',fontsize=fs)
 lonsec = 0.5*(data.lonr[1:,jsec]+data.lonr[:-1,jsec])
 lonsec = np.tile(lonsec,(data.z_w.shape[-1],1)).T
@@ -107,7 +98,7 @@ ax.tick_params(labelsize=fs)
 
 ax = plt.subplot(gs[1,0]) # ------------------------ colorbar vertical resolution
 cb = plt.colorbar(ctf,cax=ax,orientation='horizontal',ticks=cbticks_dz)
-cb.set_label(cblabel_dz,fontsize=fs,labelpad=-87)  #-57)
+cb.set_label(cblabel_dz,fontsize=fs,labelpad=-87)  
 cb.ax.tick_params(labelsize=fs)
 
 ax = plt.subplot(gs[:,1]) # ------------------------ deepest point 
@@ -138,6 +129,6 @@ plt.ylabel('z [m]',fontsize=fs)
 plt.xlabel('dz [m]',fontsize=fs)
 ax.set_xticks([0,10,20,30],fontsize=fs)
 
-plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/vertical_grid_resolution_Jon_deepest.png',dpi=200,bbox_inches='tight')
+plt.savefig('appendixA.png',dpi=200,bbox_inches='tight')
 plt.close()
 

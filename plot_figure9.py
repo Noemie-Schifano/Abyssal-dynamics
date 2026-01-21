@@ -1,6 +1,6 @@
 '''
 NS: Need "compute_k_buoyancy_balance_16T.py" to run before to create "file_buoyb"
-    Need "compute_k_buoyancy_balance_16T_6h.py" to run before to create "file_buoyb6h
+    Need "compute_k_buoyancy_balance_16T_6h.py" to run before to create "file_buoyb6h"
     Create diagnostics of buoyancy and the role of mixing as a function of the time for each TREs
     The same 16 TREs are released but with 6 hours-intervals    
 '''
