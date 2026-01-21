@@ -1,5 +1,8 @@
 '''
-NS 23/07/2024: plot diags_tracer
+NS: Need "compute_k_buoyancy_balance_16T.py" to run before to create "file_buoyb"
+    Need "compute_k_buoyancy_balance_16T_6h.py" to run before to create "file_buoyb6h
+    Create diagnostics of buoyancy and the role of mixing as a function of the time for each TREs
+    The same 16 TREs are released but with 6 hours-intervals    
 '''
 
 import matplotlib
@@ -7,14 +10,12 @@ matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-#plt.rcParams['font.family'] = 'serif'
-#plt.rcParams['text.usetex'] = True
 import matplotlib.gridspec as gridspec
 import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3-master/')
+sys.path.append('Python_Modules_p3-master/')
 from Modules import *
 from Modules_gula import *
 import R_tools as tools
@@ -22,7 +23,6 @@ import R_vars_gula as toolsvarg
 import R_tools_fort as toolsF
 import R_tools_fort_gula as toolsF_g
 from croco_simulations_jon_hist_last6h import Croco_6h
-#from croco_simulations_hist import Croco_hist
 import cartopy.crs as ccrs
 import gsw as gsw
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
@@ -30,10 +30,8 @@ from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
 matplotlib.rcParams.update({'font.size': 18})
 
 # ------------ file BBL -------------
-file_bbl        = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/BBL_height_N2.nc'
-file_n2_bbl     = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrexnumsb200_bottom_bvf.nc'
-file_buoyb      = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_k_buoy_rhop_tracer_balance.nc'
-file_buoyb6h    = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_6h_k_buoy_rhop_tracer_balance.nc'
+file_buoyb      = 'rrexnumsb200-rsup5_16tracers_k_buoy_rhop_tracer_balance.nc'
+file_buoyb6h    = 'rrexnumsb200-rsup5_16tracers_6h_k_buoy_rhop_tracer_balance.nc'
 
 
 # ------------ parameters ------------ 
@@ -79,27 +77,13 @@ if plot_buoy_balance == True:
            'solid','solid','solid','solid',
            'solid','solid','solid','solid',
            'solid','solid','solid','solid']
-           #'dashed','dashed','dashed','dashed',
-           #'dashed','dashed','dashed','dashed']
-        #    'dotted','dotted','dotted','dotted',
-        #    'dashed','dashed','dashed','dashed',
-        #    'dashdot','dashdot','dashdot','dashdot']
     cmap_data     = plt.cm.Paired
     cfmap         = cmap_data(np.linspace(0.,1.,5))
     cfmap         = ['r','b','c','m']
-    #cfmap         = [ colors.to_rgba('blue'),'k',colors.to_rgba('blueviolet'),colors.to_rgba('red')]
     cfc           = colors.to_rgba('darkgrey')
-    #cfmap         = cmap_data(np.linspace(0.2,0.75,8))
-    #cfmap[0]      = cmap_data([0.])
-    #cfmap[1]      = cmap_data([0.15])
-    #cfbb          = [cfmap[i] for i in range(len(cfmap))] + [cfmap[i] for i in range(len(cfmap))]
-
+    
     tpas2c      = [1,3,5,6] # --> tracers to color
-    tpasn2c     = [0,2,4,7,8,9,10,11,12,13,14,15] # --> tracers not 2 colored
-
-    #tpas2c      = [0,2,4,7]
-    #tpasn2c     = [1,3,5,6,8,9,10,11,12,13,14,15]
-
+    
     cfbb = [ cfc,cfc,cfc,cfc,
              cfc,cfc,cfc,cfc,
              cfc,cfc,cfc,cfc,
@@ -117,31 +101,32 @@ if plot_buoy_balance == True:
         cfbb[tpas2c[i]]    = cfmap[i]
         zordert[tpas2c[i]] = 1
         lwt[tpas2c[i]]     = lw0+0.5
+
 # ------------ read buoyancy balance for tracer and in time ------------
+# buoy(ntpas,nt)
 nc = Dataset(file_buoyb,'r')
 w        = nc.variables['w_avg'][:].T
 N2       = nc.variables['N2_avg'][:].T
 c_rhs    = nc.variables['c_rhs_avg'][:].T
 b_rhs    = nc.variables['b_rhs_avg'][:].T
 b_adv    = nc.variables['b_adv_avg'][:].T
-buoy     = nc.variables['buoy_avg'][:,:].T    # buoy(ntpas,nt) 
-#buoy_dv  = nc.variables['buoy_avg_dv'][:,:].T    # buoy(ntpas,nt) 
-buoy_var = nc.variables['buoy_var'][:,:].T    # buoy(ntpas,nt) 
+buoy     = nc.variables['buoy_avg'][:,:].T     
+buoy_var = nc.variables['buoy_var'][:,:].T     
 nc.close()
 
 buoy_corrected = buoy
 
 
 # ------------ read buoyancy balance for tracer and in time ------------
+# buoy(ntpas,nt)
 nc6 = Dataset(file_buoyb6h,'r')
 w6h        = nc6.variables['w_avg'][:].T
 N26h       = nc6.variables['N2_avg'][:].T
 c_rhs6h    = nc6.variables['c_rhs_avg'][:].T
 b_rhs6h    = nc6.variables['b_rhs_avg'][:].T
 b_adv6h    = nc6.variables['b_adv_avg'][:].T
-buoy6h     = nc6.variables['buoy_avg'][:,:].T    # buoy(ntpas,nt) 
-#buoy_dv  = nc.variables['buoy_avg_dv'][:,:].T    # buoy(ntpas,nt) 
-buoy_var6h = nc6.variables['buoy_var'][:,:].T    # buoy(ntpas,nt) 
+buoy6h     = nc6.variables['buoy_avg'][:,:].T     
+buoy_var6h = nc6.variables['buoy_var'][:,:].T    
 nc6.close()
 
 buoy_corrected6h = buoy6h
@@ -155,7 +140,6 @@ if plot_tracer_b == True:
     int_brhs_crhs = np.zeros((np.shape(b_rhs)))
     int_brhs_crhs[0,:] = buoy_corrected[0,:]
     for i in range(1,nt):
-        #int_brhs[i-1,:]   = 0.5*(buoy[i-1,:]+buoy[i,:])+ 2*np.sum(b_rhs[:(i+1),:],axis=0)*((i+1)*dt)
         int_brhs[i,:]        = buoy_corrected[0,:]+ 2*np.sum(b_rhs[:(i+1),:],axis=0)*dt
         int_brhs_crhs[i,:]   = buoy_corrected[0,:]+ np.sum(b_rhs[:(i+1),:],axis=0)*dt+np.sum(c_rhs[:(i+1),:],axis=0)*dt
         print(i,len(b_rhs[:i,:]),int_brhs[i-1,0],buoy[1,0])
@@ -165,7 +149,6 @@ if plot_tracer_b == True:
     int_brhs_crhs6h = np.zeros((np.shape(b_rhs6h)))
     int_brhs_crhs6h[0,:] = buoy_corrected6h[0,:]
     for i in range(1,nt):
-        #int_brhs[i-1,:]   = 0.5*(buoy[i-1,:]+buoy[i,:])+ 2*np.sum(b_rhs[:(i+1),:],axis=0)*((i+1)*dt)
         int_brhs6h[i,:]        = buoy_corrected6h[0,:]+ 2*np.sum(b_rhs6h[:(i+1),:],axis=0)*dt
         int_brhs_crhs6h[i,:]   = buoy_corrected6h[0,:]+ np.sum(b_rhs6h[:(i+1),:],axis=0)*dt+np.sum(c_rhs6h[:(i+1),:],axis=0)*dt
         print(i,len(b_rhs[:i,:]),int_brhs[i-1,0],buoy[1,0])
@@ -201,8 +184,7 @@ if plot_tracer_b == True:
             count_y=0
         else:
             count_y+=1
-        #ax.tick_params(axis='y', colors='b')
-    plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/Deep_tracer_6h/16tracer_b_allTREs.png',dpi=180,bbox_inches='tight')
+    plt.savefig('figure9.png',dpi=180,bbox_inches='tight')
     plt.close()
 
 

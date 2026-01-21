@@ -1,3 +1,9 @@
+'''
+NS: Compute and save diagnostics for each TRE
+    nota bene: The same 16 TREs are released but with 6 hours-intervals, in this code it is the 
+                 16 TREs released 6h after the referenced TREs that are analysed    
+'''
+
 import matplotlib
 matplotlib.use('Agg') 
 import numpy as np
@@ -8,12 +14,11 @@ import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home2/datahome/nschifan/Python_Modules_p3/')
+sys.path.append('Python_Modules_p3/')
 import R_tools as tools
 import R_tools_fort as toolsF
 import gsw as gsw
 import obsfit1d as fit
-#import time as time
 from croco_simulations_jon_hist_last6h import Croco_6h
 matplotlib.rcParams.update({'font.size': 14})
 
@@ -29,23 +34,23 @@ rhop_tracer= True
 if test_nc == True :
     ndfiles     = 2
     time        = np.arange(0,1)
-    file_diag_k = '/home/datawork-lops-rrex/nschifan/DIAGS/test_rrexnumsb200-rsup5_16tracers_6h_k_buoy_balance.nc'
+    file_diag_k = 'test_rrexnumsb200-rsup5_16tracers_6h_k_buoy_balance.nc'
 else:
     ndfiles     = 24
     time        = np.arange(0,25,24)
     if sigma2 == True:
-        file_diag_k = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_6h_k_buoy_sigma2_balance.nc'
+        file_diag_k = 'rrexnumsb200-rsup5_16tracers_6h_k_buoy_sigma2_balance.nc'
     elif rhop_tracer == True:
-        file_diag_k = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_6h_k_buoy_rhop_tracer_balance.nc'
+        file_diag_k = 'rrexnumsb200-rsup5_16tracers_6h_k_buoy_rhop_tracer_balance.nc'
     else:
-        file_diag_k = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_6h_k_buoy_balance.nc'
+        file_diag_k = 'rrexnumsb200-rsup5_16tracers_6h_k_buoy_balance.nc'
     
 nt          = len(time)*ndfiles
 dt          = 1*3600 #1h 
 # - select tracers for analysis - 
 tpas_list =  ['tpas0'+str(i) for i in range(1,10)]+['tpas'+str(i) for i in range(10,17)]
 ntpas = len(tpas_list)
-var_list  = ['zeta','rho','u','v','bvf','salt','temp','AKt']
+var_list  = ['zeta','rho','u','v','bvf','salt','temp']
 var_list += tpas_list 
 
 gg = 9.81
@@ -53,7 +58,6 @@ rhoref = 1027.4
 
 # --- variables to be saved ---
 buoy_avg     = np.zeros((ntpas,nt))      # first order moment of tracer in buoyancy space  
-#buoy_avg_dv  = np.zeros((ntpas,nt))      # first order moment of tracer in buoyancy space  
 buoy_var     = np.zeros((ntpas,nt))      # second order moment of tracer in buoyancy space (variance)    
 b_rhs_avg    = np.zeros((ntpas,nt))
 b_rhs_dv_avg    = np.zeros((ntpas,nt))
@@ -62,16 +66,8 @@ b_adv_avg    = np.zeros((ntpas,nt))
 w_avg        = np.zeros((ntpas,nt))
 p_ref        = np.zeros(ntpas)
 N2_avg       = np.zeros((ntpas,nt)) 
-#AKt_avg      = np.zeros((ntpas,nt))      # AKt averaged over the tracer  
-#Keff_avg     = np.zeros((ntpas,nt))      # Effective diapycnal diffusivity computed online on CROCO
-# variables as defined in Ruan and Ferrari 2021
-#Wtracer      = np.zeros((ntpas,nt)) 
-#Ktaylor      = np.zeros((ntpas,nt))
-#Komega       = np.zeros((ntpas,nt))
-#K_tracer     = np.zeros((ntpas,nt))
-#bp2          = np.zeros((ntpas,nt))
-#gradb2_avg   = np.zeros((ntpas,nt))
 
+# --- functions ---
 def tracer_avg(var,tpas,dvol):
     # dvol is the cell volume  
     #return np.nansum(var*tpas)/np.nansum(tpas)
@@ -86,7 +82,7 @@ def buoy_avg_rhs(var,buoy,tpas,dvol):
     return np.nansum(var*buoy)/np.nansum(tpas*dvol)
 
 
-
+# --- read data ---
 print(' ............ time loop ...............................................  ')
 tt = 0
 for t_nc in range(len(time)):
@@ -94,20 +90,17 @@ for t_nc in range(len(time)):
     data.get_grid()
     dsurf   = 1./np.transpose(np.tile(data.pm*data.pn,(int(nbr_levels),1,1)),(1,2,0)) # horizontal surface area
     dsurf_w = 1./np.transpose(np.tile(data.pm*data.pn,(int(nbr_levels)-1,1,1)),(1,2,0)) # horizontal surface area at w-points
-    # test keff
     for t in range(0,ndfiles):
         print('=====================  time index %.4i ====================='%t)
         print('    ---> read outputs ')
         data.get_outputs(t,var_list)
-        #Keff      = data.get_diffusivity(tt,'diffusivity',get_date=False) 
-        #AKt       = data.var['AKt']
         [z_r,z_w] = toolsF.zlevs(data.h,data.var['zeta'],data.hc,data.Cs_r,data.Cs_w)
         dvol    = np.diff(z_w,axis=-1)*dsurf
         dvol_w  = np.diff(z_r,axis=-1)*dsurf_w
         w         = 3600*24*toolsF.get_wvlcty(data.var['u'],data.var['v'],z_r,z_w,data.pm,data.pn)
         print(' ... compute potential density referenced at 1000 meters... ')
         p               = gsw.p_from_z(z_r,np.nanmean(data.latr))
-        # compute initial reference pressure 
+        # --- compute initial reference pressure 
         if tt==0:
             print(' --- compute p_ref ---')
             for itpas in range(ntpas):
@@ -119,63 +112,32 @@ for t_nc in range(len(time)):
         CT      = gsw.CT_from_pt(SA,data.var['temp'])
         temp    = data.var['temp'][:]
         N2      = tools.w2rho(data.var['bvf'])
-        # buoyancy balance
+        # --- buoyancy balance
         [b_rhs,b_adv] = data.get_buoyancy_balance(tt)
         c_rhs         = data.get_crhs(tt)
         print('     --> compute the moments of tracer and N2 ')
         for i in range(ntpas):
-            #c_rhs         = data.get_crhs(tt)[i]
             # --- compute buoyancy 
             rho_po  = gsw.rho(SA,CT,p_ref[i])
             buoy    = -gg*(rho_po-rhoref)/rhoref
-            ## --- compute grad(b)**2 ---
-            #dbdx   = tools.u2rho_3d(tools.diffxi_3d(buoy,data.pm,z_r,z_w,newz=None,mask=None))
-            #dbdy   = tools.v2rho_3d(tools.diffeta_3d(buoy,data.pn,z_r,z_w,newz=None,mask=None))
-            #dz_w   = np.diff(z_r,axis=-1)
-            #dbdz_w = np.diff(buoy,axis=-1)/dz_w
-            #dbdz   =  tools.vinterp(dbdz_w,z_r,z_w[:,:,1:-1],z_r)
-            #dbdz2  = dbdz**2
-            #gradb2 = dbdx**2 + dbdy**2 +dbdz**2
             # --- compute tracer
             tpas            = np.asfortranarray(data.var[tpas_list[i]][:,:,:])
             tpas[tpas<1e-6] = np.nan
             tpas_w          = 0.5*(tpas[:,:,:-1]+tpas[:,:,1:])
             buoy_avg[i,tt]  = tracer_avg(buoy,tpas,dvol)                        # called nu in (24) in H19    
-            #buoy_avg_dv[i,tt] = tracer_avg(buoy*dvol,tpas,dvol)
             buoy_var[i,tt]  = tracer_avg(buoy**2,tpas,dvol) - buoy_avg[i,tt]**2 # called sigma^2 in (25) in H19
             w_avg[i,tt]     = tracer_avg(w,tpas,dvol)
             N2_avg[i,tt]    = tracer_avg(N2,tpas,dvol)
-            #AKt_avg[i,tt]   = tracer_avg(tools.w2rho(AKt),tpas,dvol)
-            #Keff_avg[i,tt]  = tracer_avg(Keff,tpas,dvol)
             # rhs is already inegrated over volume
             b_rhs_avg[i,tt] = tracer_avg_rhs(b_rhs,tpas,dvol)
             b_rhs_dv_avg[i,tt] = tracer_avg(b_rhs,tpas,dvol)
             b_adv_avg[i,tt] = tracer_avg_rhs(b_adv,tpas,dvol)
-            #c_rhs_avg[i,tt] = tracer_avg_rhs(c_rhs,tpas)
             c_rhs_avg[i,tt] = buoy_avg_rhs(c_rhs[i][:,:,:],buoy,tpas,dvol)
-            #print('     --> compute variables as in Ruan and Ferrari 2021')            
-            #omega            = np.diff(Keff[:,:,:-1]*dbdz_w,axis=-1)/np.diff(z_w[:,:,1:-1],axis=-1)     # at rho-points with nsig-2 levels
-            #omega_avg        = tracer_avg(omega,tpas[:,:,1:-1],dvol[:,:,1:-1])
-            ##Wtracer[i,tt]    = omega_avg / tracer_avg(dbdz_w,tpas_w,dvol_w)
-            ##Ktaylor[i,tt]    = tracer_avg(Keff[:,:,:-1]*dbdz_w**2,tpas_w,dvol_w) / tracer_avg(dbdz_w**2,tpas_w,dvol_w) 
-            ##Komega[i,tt]     = 2*tracer_avg((omega-omega_avg)*(buoy[:,:,1:-1]-buoy_avg[i,t]),tpas[:,:,1:-1],dvol[:,:,1:-1])/tracer_avg(dbdz_w**2,tpas_w,dvol_w)
-            #bp2[i,tt]        = tracer_avg((buoy - buoy_avg[i,tt])**2,tpas,dvol)
-            #gradb2_avg[i,tt] = tracer_avg(gradb2,tpas,dvol)
         tt+=1
 
-## --- compute Ktracer 
-#print(" ------ Ktracer following RUan and Ferrari 2021 ---------- ")
-##K_tracer=np.zeros((np.shape(bp2)[0],np.shape(bp2)[1]-1))
-## --> Loop on tracer patchs
-#for itpas in range(ntpas):
-#    K_tracer[itpas,:-1] =  0.5*(bp2[itpas,1:]-bp2[itpas,:-1])/dt/(0.5 * (gradb2_avg[itpas,1:] + gradb2_avg[itpas,:-1]) )
-#print(K_tracer)
-#K_tracer[:,-1] = np.nan*np.ones(np.shape(K_tracer[:,-1]))
-#print(K_tracer)
 
 # ----------- save parameters in netcdf file ------------ 
 print(' ... save in netcdf file ... ')
-#print(file_diag)
 nc = Dataset(file_diag_k,'w')
 nc.rhoref      = rhoref
 nc.createDimension('time',nt)
@@ -183,7 +145,6 @@ nc.createDimension('ntpas',ntpas)
 
 nc.createVariable('time','f',('time'))
 nc.createVariable('buoy_avg','f',('ntpas','time'))
-#nc.createVariable('buoy_avg_dv','f',('ntpas','time'))
 nc.createVariable('buoy_var','f',('ntpas','time'))
 var = nc.createVariable('b_rhs_avg','f',('ntpas','time'))
 var.long_name = 'b_rhs weighted by the tracer concentration'
@@ -196,34 +157,15 @@ var = nc.createVariable('w_avg','f',('ntpas','time'))
 var.long_name = 'w weighted by the tracer concentration'
 var = nc.createVariable('N2_avg','f',('ntpas','time'))
 var.long_name = 'N2 weighted by the tracer concentration'
-#var = nc.createVariable('AKt_avg','f',('ntpas','time'))
-#var.long_name = 'AKt weighted by the tracer concentration'
-#var = nc.createVariable('Keff_avg','f',('ntpas','time'))
-#var.long_name = 'Keff weighted by the tracer concentration'
-#var = nc.createVariable('Ktr','f',('ntpas','time'))
-#var.long_name = 'see Ruan and Ferrari JPO 2021'
-##var = nc.createVariable('Wtracer','f',('ntpas','time'))
-##var.long_name = 'see Ruan and Ferrari JPO 2021'
-##var = nc.createVariable('Ktaylor','f',('ntpas','time'))
-##var.long_name = 'see Ruan and Ferrari JPO 2021'
-##var = nc.createVariable('Komega','f',('ntpas','time'))
-##var.long_name = 'see Ruan and Ferrari JPO 2021'
 
-nc.variables['buoy_avg'][:]    = buoy_avg
-#nc.variables['buoy_avg_dv'][:]    = buoy_avg_dv
-nc.variables['buoy_var'][:]    = buoy_var
-nc.variables['b_rhs_avg'][:]   = b_rhs_avg
-nc.variables['b_rhs_dv_avg'][:]   = b_rhs_dv_avg
-nc.variables['c_rhs_avg'][:]   = c_rhs_avg
-nc.variables['b_adv_avg'][:]   = b_adv_avg
-nc.variables['w_avg'][:]       = w_avg
-nc.variables['N2_avg'][:]      = N2_avg
-#nc.variables['Ktr'][:]         = K_tracer
-##nc.variables['Wtracer'][:]     = Wtracer
-##nc.variables['Ktaylor'][:]     = Ktaylor
-##nc.variables['Komega'][:]      = Komega
-#nc.variables['AKt_avg'][:]     = AKt_avg
-#nc.variables['Keff_avg'][:]    = Keff_avg
+nc.variables['buoy_avg'][:]     = buoy_avg
+nc.variables['buoy_var'][:]     = buoy_var
+nc.variables['b_rhs_avg'][:]    = b_rhs_avg
+nc.variables['b_rhs_dv_avg'][:] = b_rhs_dv_avg
+nc.variables['c_rhs_avg'][:]    = c_rhs_avg
+nc.variables['b_adv_avg'][:]    = b_adv_avg
+nc.variables['w_avg'][:]        = w_avg
+nc.variables['N2_avg'][:]       = N2_avg
 
 nc.close()
 

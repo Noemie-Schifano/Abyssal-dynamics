@@ -1,5 +1,8 @@
 '''
-NS 2022/10/10: is negative concentration ??   
+NS: Vertical slice of the stratification, momentum and topostrophy as a function 
+         of height above the bottom
+         --> Using 219 time-averaged
+         --> Spatially averaged on few vertical, i.e. y-axis, sections  
 '''
 
 import matplotlib
@@ -7,14 +10,12 @@ matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-#plt.rcParams['font.family'] = 'serif'
-#plt.rcParams['text.usetex'] = True
 import matplotlib.gridspec as gridspec
 import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3-master/')
+sys.path.append('Python_Modules_p3-master/')
 
 from Modules import *
 from Modules_gula import *
@@ -26,7 +27,6 @@ import time as time
 import calendar as cal
 import datetime as datetime
 from croco_simulations_jonathan_ncra_longrun import Croco_longrun
-#from croco_simulations_hist import Croco_hist
 import cartopy.crs as ccrs
 import gsw as gsw
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
@@ -38,10 +38,9 @@ matplotlib.rcParams.update({'font.size': 28})
 file_bbl        = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/BBL_height_N2.nc'
 
 # ------------ parameters ------------ 
-name_exp    = 'rrexnum200' #['rrex100-up3','rrex100-up5','rrex100-weno5','rrex200-up3','rrex200-up5','rrex200-weno5','rrex300-up3','rrex300-500cpu-up5','rrex300-500cpu-weno5']
-name_exp_path ='rrexnums200_rsup5'#-rsup5'
-#title_exp   = ['a) rrex100-up3','b) rrex100-up5','c) rrex100-weno5','d) rrex200-up3','e) rrex200-up5','f) rrex200-weno5','g) rrex300-up3','h) rrex300-up5','i) rrex300-weno5']
-name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'#RSUP5_NOFILT_T'
+name_exp    = 'rrexnum200' 
+name_exp_path ='rrexnums200_rsup5'
+name_pathdata = 'RREXNUMSB200_RSUP5_NOFILT_T'
 name_exp_grd= ''
 nbr_levels  = '200'
 name_exp_saveup = name_exp_path
@@ -62,8 +61,8 @@ jsec0       = jsec[0]
 cjsec0      = cjsec[0]
 epsj        = 25 # to do an avg on 10 points
 levels_rho_contour = np.arange(31.5,33.0,0.05)
-lbp = -95#0
-#jsec0, jsec1, jsec2 = 150,450,650
+lbp = -95
+
 
 
 # --- kkpp & keff ---
@@ -71,8 +70,7 @@ pmin,pmax,pint = -5,0,0.1
 cmap_k        = plt.cm.Reds
 levels_k      = np.power(10,np.arange(pmin,pmax+pint,pint))
 norm_k        = colors.LogNorm(vmin=1e-5,vmax=1)
-#norm_k       = colors.BoundaryNorm(np.logspace(pmin,pmax,int((pmax-pmin)/pint+1)),ncolors=cmap_k.N,clip=True)
-cbticks_k     = [1e-5,1e-4,1e-3,1e-2,1e-1,1] #np.logspace(pmin,pmax,pmax-pmin+1)
+cbticks_k     = [1e-5,1e-4,1e-3,1e-2,1e-1,1] 
 cblabel_kkpp  = r'$\kappa_{KPP}$ [m$^2$ s$^{-1}$]'
 cblabel_keff  = r'$\kappa_{eff}$ [m$^2$ s$^{-1}$]'
 
@@ -83,7 +81,6 @@ cmap_N2        = plt.cm.bwr
 norm_N2        = colors.SymLogNorm(linthresh=pint, linscale=1, vmin=pmin, vmax=pmax,base=10) #colors.Normalize(vmin=pmin,vmax=pmax)
 cbticks_N2     = [pmin,-1e-6,-1e-7,-1e-8,0,1e-8,1e-7,1e-6,pmax]
 cbticks_N2     = [-1e-6,-1e-8,0,1e-8,1e-6]
-#cbticks_N2     = [pmin,-1e-6,-1e-7,-1e-8,0,1e-8,1e-7,1e-6,pmax]
 cblabel_N2     = r'$N^2$ [s$^{-2}$]'
 cblabel_N20    = r'$N^2(s_0)$ [s$^{-2}$]'
 cblabel_N2bbl  = r'$N^2_{BBL}$ [s$^{-2}$]'
@@ -91,17 +88,16 @@ cblabel_N2bbl  = r'$N^2_{BBL}$ [s$^{-2}$]'
 
 # --- wN2 ---
 cmap_wN2        = plt.cm.PuOr_r 
-pmin,pmax,pint  =  -5e-10, 5e-10,5e-12 #-1e-10, 1e-10,5e-12 #-1e-9,1e-9,1e-12
-norm_wN2        = colors.Normalize(vmin=pmin,vmax=pmax) # colors.SymLogNorm(linthresh=pint, linscale=1, vmin=pmin, vmax=pmax,base=10) #colors.Normalize(vmin=pmin,vmax=pmax)
+pmin,pmax,pint  =  -5e-10, 5e-10,5e-12 
+norm_wN2        = colors.Normalize(vmin=pmin,vmax=pmax) 
 cbticks_wN2     = [pmin,0,pmax]
 cblabel_wN2     = r'-w $\cdot$ $N^2$ [m $s^{-3}$]'
 cblabel_wN2bbl  = r'-w $\cdot$ $N^2_{BBL}$ [m $s^{-3}$]'
 
 # --- w ---
-cmap_w     =  plt.cm.RdBu_r #seismic
-pmin,pmax,pint   = -100, 100,1#-5e-3,5e-3,5e-5
+cmap_w     =  plt.cm.RdBu_r 
+pmin,pmax,pint   = -100, 100,1
 norm_w        = colors.Normalize(vmin=pmin,vmax=pmax)
-#norm_w        = colors.SymLogNorm(linthresh=10, linscale=1, vmin=pmin, vmax=pmax,base=10)
 cbticks_w     =  [pmin,-50,0,50,pmax]
 cblabel_w     = r'w [m day$^{-1}$]'
 
@@ -115,23 +111,21 @@ cblabel_v       = r'v [m s$^{-1}$]'
 
 
 # --- to ---
-cmap_to        =  cmap_w  #PuOr_r #seismic
-pmin,pmax,pint = -0.5, 0.5,0.005#-5e-3,5e-3,5e-5
+cmap_to        =  cmap_w  
+pmin,pmax,pint = -0.5, 0.5,0.005
 levels_to      =  np.arange(pmin,pmax+pint,pint)
 norm_to        =  colors.Normalize(vmin=pmin,vmax=pmax)
-#pmin,pmax,pint  = -0.1,0.4,0.01
-#norm_to        = colors.SymLogNorm(linthresh=0.03, linscale=0.03,vmin=pmin, vmax=pmax)
 cbticks_to     =  [pmin,0,pmax]
 cblabel_to     = r'$\tau$ [cm s$^{-1}$]'
 
 # --- buoyancy ---
-cmap_b        =  plt.cm.PuOr_r #PuOr_r #seismic
-pmin,pmax,pint = -1e-10, 1e-10,5e-12#-5e-3,5e-3,5e-5
+cmap_b        =  plt.cm.PuOr_r 
+pmin,pmax,pint = -1e-10, 1e-10,5e-12
 levels_b       =  np.arange(pmin,pmax+pint,pint)
 norm_b         =  colors.Normalize(vmin=pmin,vmax=pmax)
 cbticks_b      =  [pmin,0,pmax]
 # --- buoyancy decomposed ---
-pmin,pmax,pint = -5e-10, 5e-10,5e-12#-5e-3,5e-3,5e-5
+pmin,pmax,pint = -5e-10, 5e-10,5e-12
 levels_bd       =  np.arange(pmin,pmax+pint,pint)
 norm_bd         =  colors.Normalize(vmin=pmin,vmax=pmax)
 cbticks_bd      =  [pmin,0,pmax]
@@ -209,9 +203,9 @@ ix4,iy4 = tools.find_nearest_points(simul0.x,simul0.y,lon2,lat2)
 ixs = [ix1,ix2,ix3,ix4]
 iys = [iy1,iy2,iy3,iy4]
 
-i_sec = 500 #- 200#+300
+i_sec = 500 
 dx_sec = 400;
-j_sec = 350 #- 200#+300
+j_sec = 350 
 dy_sec = 200; 
 
 coordinates= ' [' + format(np.max([j_sec-dy_sec,0])) + ','\
@@ -274,27 +268,16 @@ gradh  = np.transpose(np.tile(gradhi,(200,1,1)),(1,2,0))
 print(' --- compute topostrophy ---')
 to      = 100*(data.var['u']*np.transpose(np.tile(dhdy,(200,1,1)),(1,2,0)) - tools.rho2u(tools.v2rho(data.var['v']))*np.transpose(np.tile(dhdx,(200,1,1)),(1,2,0)))
 
-print('kkpp: ',np.shape(kkpp))
-print('keff: ',np.shape(keff))
-print('N2: ',np.shape(N2))
-print('w: ',np.shape(w))
-print('to: ',np.shape(to))
-print('b_rhs: ',np.shape(b_rhs))
-print('b_adv: ',np.shape(b_adv))
-print('b_adv_mean: ',np.shape(b_adv_mean))
-print('b_adv_eddy: ',np.shape(b_adv_eddy))
-
-
 
 # ----------- make plot ------
 print('------------- MAKE PLOT ------------')
 plt.figure(figsize=(30,30))
 gs0 = gridspec.GridSpec(6,3,height_ratios=[2,0.1,1,0.1,1,0.1],hspace=0.55,wspace=0.35)
-gs  = gridspec.GridSpec(6,3,height_ratios=[2,0.1,1,0.1,1,0.1],hspace=0.55,wspace=0.35) #0.65
+gs  = gridspec.GridSpec(6,3,height_ratios=[2,0.1,1,0.1,1,0.1],hspace=0.55,wspace=0.35) 
 
 # --> vertical slice bathymetry
 ax = plt.subplot(gs0[0,0:1])
-plt.title(' a) ',fontsize=fs)#,loc='left')
+plt.title(' a) ',fontsize=fs)
 lonsec = 0.5*(data.lonr[1:,jsec0]+data.lonr[:-1,jsec0])
 lonsec = np.tile(lonsec,(data.z_r.shape[-1],1)).T
 lon_tile = np.tile(data.lonr[:,jsec0],(z_r.shape[-1],1)).T
@@ -309,14 +292,12 @@ plt.xlabel('Longitude [$^{\circ}$E]',fontsize=fs)
 
 # --> horizontal map N2_BBL 
 ax = plt.subplot(gs0[0,1])
-plt.title(' b) ',fontsize=fs)#,loc='left')
+plt.title(' b) ',fontsize=fs)
 ctf01 = ax.pcolormesh(N2_bbl.T,cmap=cmap_N2,zorder=1,norm=norm_N2)
 bathy = ax.contour(h.T,levels =[1000,1500,2000,2500,3000,3500,4000] , colors='k',linewidths= 1,zorder=3)
 ax.tick_params(labelsize=fs)
 plt.axhline(y=jsec0-epsj,color=cjsec0,lw=4,linestyle='dashed',label='y='+str(jsec0))
 plt.axhline(y=jsec0+epsj,color=cjsec0,lw=4,linestyle='dashed',label='y='+str(jsec0))
-#plt.xlabel('grid-cells in i-direction',fontsize=fs)
-#plt.ylabel('grid-cells in j-direction',fontsize=fs)
 ax.set_xticks([0,250,500,750,1000],['0','200','400','600','800'])
 ax.set_yticks([0,250,500,750],['0','200','400','600'])
 plt.xlabel(r'km in $\xi$-direction',fontsize=fs)
@@ -329,7 +310,7 @@ cb.ax.tick_params(labelsize=fs)
 
 # -----> vertical slice, first column
 ax = plt.subplot(gs[2,0]) # ------------------------ N2
-plt.title(' c)',fontsize=fs)#,loc='left')
+plt.title(' c)',fontsize=fs)
 lonsec = 0.5*(data.lonr[1:,jsec0]+data.lonr[:-1,jsec0])
 lonsec = np.tile(lonsec,(data.z_r.shape[-1],1)).T
 lon_tile = np.tile(data.lonr[:,jsec0],(z_r.shape[-1],1)).T
@@ -349,7 +330,7 @@ plt.ylim(0,300)
 
 ax = plt.subplot(gs[3,0]) # ------------------------ colorbar N2
 cb = plt.colorbar(ctf,cax=ax,orientation='horizontal',extend='both',ticks=cbticks_N2)
-cb.set_label(cblabel_N2,fontsize=fs,labelpad=lbp)  #-90
+cb.set_label(cblabel_N2,fontsize=fs,labelpad=lbp)  
 cb.ax.tick_params(labelsize=fs)
 
 
@@ -366,12 +347,11 @@ plt.xlabel('Longitude [$^{\circ}$E]',fontsize=fs)
 ax.tick_params(labelsize=fs)
 plt.axvline(x=-28.7,color='k',lw=4,linestyle='dashed',zorder=3)
 plt.axvline(x=-28.1,color='k',lw=4,linestyle='dashed',zorder=3)
-#ct  = plt.contour(lon_tile,habr[:,jsec0,:],s_por[:,jsec0,:],levels=levels_rho,colors='k',linewidths=0.2,zorder=3)
 plt.ylim(0,300)
 
 ax = plt.subplot(gs[3,1]) # ------------------------ colorbar u
 cb = plt.colorbar(ctf,cax=ax,orientation='horizontal',extend='both',ticks=cbticks_u)
-cb.set_label(cblabel_u,fontsize=fs,labelpad=lbp)  #-90
+cb.set_label(cblabel_u,fontsize=fs,labelpad=lbp)  
 cb.ax.tick_params(labelsize=fs)
 
 x = plt.subplot(gs[2,2]) # ------------------------ v
@@ -384,7 +364,6 @@ plt.xlabel('Longitude [$^{\circ}$E]',fontsize=fs)
 plt.ylabel('hab [m]',fontsize=fs)
 plt.axvline(x=-28.7,color='k',lw=4,linestyle='dashed',zorder=3)
 plt.axvline(x=-28.1,color='k',lw=4,linestyle='dashed',zorder=3)
-#ct  = plt.contour(lon_tile,habr[:,jsec0,:],s_por[:,jsec0,:],levels=levels_rho,colors='k',linewidths=0.2,zorder=3)
 plt.ylim(0,300)
 
 ax = plt.subplot(gs[3,2]) # ------------------------ colorbar v
@@ -393,7 +372,7 @@ cb.set_label(cblabel_v,fontsize=fs,labelpad=lbp)
 cb.ax.tick_params(labelsize=fs)
 
 ax = plt.subplot(gs[4,0]) # ------------------------ w
-plt.title(' f)',fontsize=fs)#,loc='left')
+plt.title(' f)',fontsize=fs)
 ctf = plt.pcolormesh(lonsec,np.nanmean(hab[:,jsec0-epsj:jsec0+epsj,:],axis=1),np.nanmean(w[:,jsec0-epsj:jsec0+epsj,:],axis=1),norm=norm_w,cmap=cmap_w,zorder=1)
 plt.fill_between(data.lonr[:,jsec0],habr[:,jsec0,199],1e4,fc='lightgray',ec='k',alpha=0.5,zorder=2)
 plt.contour(lon_tile,np.nanmean(habr[:,jsec0-epsj:jsec0+epsj,:],axis=1),np.nanmean(rho_po[:,jsec0-epsj:jsec0+epsj,:],axis=1),levels=levels_rho_contour,colors='k',linewidths=lwr,zorder=3)
@@ -409,11 +388,11 @@ plt.ylim(0,300)
 
 ax = plt.subplot(gs[5,0]) # ------------------------ colorbar w
 cb = plt.colorbar(ctf,cax=ax,orientation='horizontal',extend='both',ticks=cbticks_w)
-cb.set_label(cblabel_w,fontsize=fs,labelpad=lbp)  #-90
+cb.set_label(cblabel_w,fontsize=fs,labelpad=lbp)  
 cb.ax.tick_params(labelsize=fs)
 
 ax = plt.subplot(gs[4,1]) # ------------------------ to
-plt.title(' g)',fontsize=fs)#,loc='left')
+plt.title(' g)',fontsize=fs)
 ctf = plt.pcolormesh(lonsec,np.nanmean(hab[:,jsec0-epsj:jsec0+epsj,:],axis=1),np.nanmean(to[:,jsec0-epsj:jsec0+epsj,:],axis=1),norm=norm_to,cmap=cmap_to,zorder=1)
 plt.fill_between(data.lonr[:,jsec0],habr[:,jsec0,199],1e4,fc='lightgray',ec='k',alpha=0.5,zorder=2)
 plt.contour(lon_tile,np.nanmean(habr[:,jsec0-epsj:jsec0+epsj,:],axis=1),np.nanmean(rho_po[:,jsec0-epsj:jsec0+epsj,:],axis=1),levels=levels_rho_contour,colors='k',linewidths=lwr,zorder=3)
@@ -429,12 +408,11 @@ plt.ylim(0,300)
 
 ax = plt.subplot(gs[5,1]) # ------------------------ colorbar to
 cb = plt.colorbar(ctf,cax=ax,orientation='horizontal',extend='both',ticks=cbticks_to)
-cb.set_label(cblabel_to,fontsize=fs,labelpad=lbp)  #-90
+cb.set_label(cblabel_to,fontsize=fs,labelpad=lbp) 
 cb.ax.tick_params
 
 
-
-plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/vertical_slice_jsec_'+str(jsec0)+'_buoyancy_balance_v2.png',dpi=200,bbox_inches='tight')
+plt.savefig('figure7.png',dpi=200,bbox_inches='tight')
 plt.close()
 
 

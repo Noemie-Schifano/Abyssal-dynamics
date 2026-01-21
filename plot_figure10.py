@@ -1,5 +1,9 @@
 '''
-NS 23/07/2024: plot diags_tracer
+NS: Need "compute_k_buoyancy_balance_16T.py" to run before to create "file_buoyb"
+    Need "compute_k_buoyancy_balance_16T_6h.py" to run before to create "file_buoyb6h
+    Need "compute_zc_rhs_buoyancy_balance_allTRE.py" to run before to create "file_zcrhs"
+    Create diagnostics on the depth of TREs and the role of mixing as a function of the time for each TREs
+    The same 16 TREs are released but with 6 hours-intervals    
 '''
 
 import matplotlib
@@ -7,14 +11,12 @@ matplotlib.use('Agg') #Choose the backend (needed for plotting inside subprocess
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-#plt.rcParams['font.family'] = 'serif'
-#plt.rcParams['text.usetex'] = True
 import matplotlib.gridspec as gridspec
 import matplotlib.colors   as colors
 import matplotlib.ticker   as ticker
 from netCDF4 import Dataset
 import sys
-sys.path.append('/home/datawork-lops-rrex/nschifan/Python_Modules_p3-master/')
+sys.path.append('Python_Modules_p3-master/')
 from Modules import *
 from Modules_gula import *
 import R_tools as tools
@@ -22,7 +24,6 @@ import R_vars_gula as toolsvarg
 import R_tools_fort as toolsF
 import R_tools_fort_gula as toolsF_g
 from croco_simulations_jon_hist_last6h import Croco_6h
-#from croco_simulations_hist import Croco_hist
 import cartopy.crs as ccrs
 import gsw as gsw
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
@@ -30,11 +31,9 @@ from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
 matplotlib.rcParams.update({'font.size': 18})
 
 # ------------ file BBL -------------
-file_bbl        = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/BBL_height_N2.nc'
-file_n2_bbl     = '/home/datawork-lops-rrex/nschifan/Data_in_situ_Rene/rrexnumsb200_bottom_bvf.nc'
-file_buoyb      = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_k_buoy_rhop_tracer_balance.nc'
-file_buoyb6h    = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16tracers_6h_k_buoy_rhop_tracer_balance.nc'
-file_zcrhs      = '/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_allTREs_zc_rhs.nc'
+file_buoyb      = 'rrexnumsb200-rsup5_16tracers_k_buoy_rhop_tracer_balance.nc'
+file_buoyb6h    = 'rrexnumsb200-rsup5_16tracers_6h_k_buoy_rhop_tracer_balance.nc'
+file_zcrhs      = 'rrexnumsb200-rsup5_allTREs_zc_rhs.nc'
 
 # ------------ parameters ------------ 
 name_exp      = 'rrexnum200' 
@@ -79,26 +78,12 @@ if plot_buoy_balance == True:
            'solid','solid','solid','solid',
            'solid','solid','solid','solid',
            'solid','solid','solid','solid']
-           #'dashed','dashed','dashed','dashed',
-           #'dashed','dashed','dashed','dashed']
-        #    'dotted','dotted','dotted','dotted',
-        #    'dashed','dashed','dashed','dashed',
-        #    'dashdot','dashdot','dashdot','dashdot']
     cmap_data     = plt.cm.Paired
     cfmap         = cmap_data(np.linspace(0.,1.,5))
     cfmap         = ['r','b','c','m']
-    #cfmap         = [ colors.to_rgba('blue'),'k',colors.to_rgba('blueviolet'),colors.to_rgba('red')]
     cfc           = colors.to_rgba('darkgrey')
-    #cfmap         = cmap_data(np.linspace(0.2,0.75,8))
-    #cfmap[0]      = cmap_data([0.])
-    #cfmap[1]      = cmap_data([0.15])
-    #cfbb          = [cfmap[i] for i in range(len(cfmap))] + [cfmap[i] for i in range(len(cfmap))]
 
     tpas2c      = [1,3,5,6] # --> tracers to color
-    tpasn2c     = [0,2,4,7,8,9,10,11,12,13,14,15] # --> tracers not 2 colored
-
-    #tpas2c      = [0,2,4,7]
-    #tpasn2c     = [1,3,5,6,8,9,10,11,12,13,14,15]
 
     cfbb = [ cfc,cfc,cfc,cfc,
              cfc,cfc,cfc,cfc,
@@ -117,8 +102,9 @@ if plot_buoy_balance == True:
         cfbb[tpas2c[i]]    = cfmap[i]
         zordert[tpas2c[i]] = 1
         lwt[tpas2c[i]]     = lw0+0.5
+
 # ------------ read TRE_ref ------------
-nc2         = Dataset('/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16T_porcentage_in_BBL_noemie.nc','r')
+nc2         = Dataset('rrexnumsb200-rsup5_16T_porcentage_in_BBL_noemie.nc','r')
 z_r_tpas    = nc2.variables['z_r_tpas'][:].T
 nc2.close()
 
@@ -128,7 +114,7 @@ nc.close()
 
 
 # ------------ read TRE_6h ------------
-nc26h         = Dataset('/home/datawork-lops-rrex/nschifan/DIAGS/rrexnumsb200-rsup5_16T_6h_porcentage_in_BBL.nc','r')
+nc26h         = Dataset('rrexnumsb200-rsup5_16T_6h_porcentage_in_BBL.nc','r')
 z_r_tpas6h    = nc26h.variables['z_r_tpas'][:].T
 nc26h.close()
 
@@ -150,7 +136,6 @@ if plot_tracer_b == True:
     int_z_crhs = np.zeros((np.shape(w)))
     int_z_crhs[0,:] = z_r_tpas[0,:]
     for i in range(1,nt):
-        #int_brhs[i-1,:]   = 0.5*(buoy[i-1,:]+buoy[i,:])+ 2*np.sum(b_rhs[:(i+1),:],axis=0)*((i+1)*dt)
         int_w[i,:]           = z_r_tpas[0,:]+ np.sum(w[:(i+1),:],axis=0)*dt
         int_z_crhs[i,:]      = z_r_tpas[0,:]+ np.sum(w[:(i+1),:],axis=0)*dt+np.sum(zc_rhs[:(i+1),:],axis=0)*dt
     # --> TREs 6h
@@ -159,7 +144,6 @@ if plot_tracer_b == True:
     int_z_crhs6h = np.zeros((np.shape(w6h)))
     int_z_crhs6h[0,:] = z_r_tpas6h[0,:]
     for i in range(1,nt):
-        #int_brhs[i-1,:]   = 0.5*(buoy[i-1,:]+buoy[i,:])+ 2*np.sum(b_rhs[:(i+1),:],axis=0)*((i+1)*dt)
         int_w6h[i,:]           = z_r_tpas6h[0,:]+ np.sum(w6h[:(i+1),:],axis=0)*dt
         int_z_crhs6h[i,:]      = z_r_tpas6h[0,:]+ np.sum(w6h[:(i+1),:],axis=0)*dt+np.sum(zc_rhs6h[:(i+1),:],axis=0)*dt
     ntimes      = np.arange(nt)
@@ -180,9 +164,8 @@ if plot_tracer_b == True:
         ax.plot(ntimes,int_w6h[:,itpas]-int_w6h[0,itpas],color='r',linestyle='dotted',linewidth=lw,label=r'$\int$ $\langle$w$\rangle$dt, TREs$_{6h}$')
         ax.plot(ntimes,int_z_crhs6h[:,itpas]-int_z_crhs6h[0,itpas],color='r',linestyle='dashed',linewidth=lw,label=r'$\int$ $\langle$w$\rangle$+ $\langle z*$c$_{rhs}$$\rangle$/$\langle$c$\rangle$  dt, TREs$_{6h}$')
         if itpas==0:
-            plt.legend(bbox_to_anchor=[4.0, 1.6],ncol=2) #4.35
+            plt.legend(bbox_to_anchor=[4.0, 1.6],ncol=2) 
         ax.axhline(y=0,c='k',alpha=0.5)
-        #ax.set_ylim(b_lim[itpas][0],b_lim[itpas][1])
         if count_x==int(ntpas/4)-1:
             ax.set_xlabel('Time since release [h]')
         else:
@@ -195,8 +178,7 @@ if plot_tracer_b == True:
             count_y=0
         else:
             count_y+=1
-        #ax.tick_params(axis='y', colors='b')
-    plt.savefig('/home/datawork-lops-rrex/nschifan/Figures/WMT/Deep_tracer_6h/16tracer_z_w_crhs_allTREs.png',dpi=180,bbox_inches='tight')
+    plt.savefig('figure10.png',dpi=180,bbox_inches='tight')
     plt.close()
 
 
