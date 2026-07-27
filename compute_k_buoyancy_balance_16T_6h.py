@@ -132,7 +132,7 @@ for t_nc in range(len(time)):
             b_rhs_avg[i,tt] = tracer_avg_rhs(b_rhs,tpas,dvol)
             b_rhs_dv_avg[i,tt] = tracer_avg(b_rhs,tpas,dvol)
             b_adv_avg[i,tt] = tracer_avg_rhs(b_adv,tpas,dvol)
-            c_rhs_avg[i,tt] = buoy_avg_rhs(c_rhs[i][:,:,:],buoy,tpas,dvol)
+            c_rhs_avg[i,tt] = buoy_avg_rhs(c_rhs[i][:,:,:],buoy,tpas,dvol)  # already got the volume in c_rhs
         tt+=1
 
 
