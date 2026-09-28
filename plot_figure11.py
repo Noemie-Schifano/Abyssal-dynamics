@@ -118,6 +118,36 @@ nc.close()
 buoy_corrected = buoy
 
 
+# --- print values for table ---
+print('<z>')
+data2plot = z_r_tpas
+print(data2plot[0,:])
+print(data2plot[5,:])
+print(data2plot[23,:])
+print(data2plot[-1,:])
+del data2plot
+print('<b>')
+data2plot = buoy_corrected
+print(data2plot[0,:])
+print(data2plot[5,:])
+print(data2plot[23,:])
+print(data2plot[-1,:])
+del data2plot
+print('<w>')
+data2plot = w
+print(data2plot[0,:])
+print(data2plot[5,:])
+print(data2plot[23,:])
+print(data2plot[-1,:])
+del data2plot
+print('<N2>')
+data2plot = N2
+print(data2plot[0,:])
+print(data2plot[5,:])
+print(data2plot[23,:])
+print(data2plot[-1,:])
+del data2plot
+
 # --- Make plot ---
 if plot_buoy_balance==True:
 	nc2         = Dataset('rrexnumsb200-rsup5_16T_porcentage_in_BBL_noemie.nc','r')

@@ -29,6 +29,7 @@ from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
 matplotlib.rcParams.update({'font.size': 14})
 from matplotlib.ticker import PercentFormatter
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import NullFormatter
 
 # ------------ parameters in-situ ------------ 
 choice_mooring  = ['IRW','IRM','IRE','RRT','ICW','ICM','ICE']
@@ -68,6 +69,7 @@ scale_km      = 400 # [km] map scale
 cf0           = colors.to_rgba('teal')
 alpha_plot    = 0.5
 plot_log      = False
+
 
 # --- bin hab
 dz = 10. # [m] 
@@ -249,11 +251,10 @@ gs = gridspec.GridSpec(7,1,hspace=0.5)
 ax = plt.subplot(gs[0])  ########################## IRW
 plt.title('a) IRW, hab = '+hab_moorings[0] +' m',fontsize=fs)
 data = w_irw
-plt.hist(data,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='Mooring')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='Mooring')
 data = wc_irw
-plt.hist(data,weights=np.ones(len(data))/len(data),color=cf0,alpha=alpha_plot,label='CROCO')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label='CROCO')
 plt.ylabel(r' pdf [$\%$]')
-plt.legend(loc='upper right')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=200,color='k',linewidth=1,alpha=0.2)
@@ -262,14 +263,14 @@ plt.axvline(x=-100,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=-200,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=-300,color='k',linewidth=1,alpha=0.2)
 m= 0
-plt.axvline(x=med[m],color='r',linewidth=2)
-plt.axvline(x=med[m]+std[m],color='r',linewidth=2,linestyle='dashed')
+plt.axvline(x=med[m],color='r',linewidth=2,label='mean, mooring')
+plt.axvline(x=med[m]+std[m],color='r',linewidth=2,linestyle='dashed',label='std, mooring')
 plt.axvline(x=med[m]-std[m],color='r',linewidth=2,linestyle='dashed')
-plt.axvline(x=medc[m],color='k',linewidth=2)
-plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
+plt.axvline(x=medc[m],color='k',linewidth=2,label='mean, CROCO')
+plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed',label='std, CROCO')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
+plt.legend(loc='upper right',ncol=2)
 plt.xlim(-310,310)
-
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
@@ -278,9 +279,9 @@ plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 ax = plt.subplot(gs[1])  ########################## IRM
 plt.title('b) IRM, hab = '+hab_moorings[1] +' m',fontsize=fs)
 data = w_irm
-plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_irm
-plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
+plt.hist(data,bins=w_e, weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label=label_croco[0])
 plt.ylabel(r' pdf [$\%$]')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
@@ -297,7 +298,6 @@ plt.axvline(x=medc[m],color='k',linewidth=2)
 plt.axvline(x=medc[m]+stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.axvline(x=medc[m]-stdc[m],color='k',linewidth=2,linestyle='dashed')
 plt.xlim(-310,310)
-
 if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
@@ -307,9 +307,9 @@ plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 ax = plt.subplot(gs[2])  ########################## IRE
 plt.title('c) IRE, hab = '+hab_moorings[2] +' m',fontsize=fs)
 data = w_ire
-plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_ire
-plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
+plt.hist(data,bins=w_e, weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label=label_croco[0])
 plt.ylabel(r' pdf [$\%$]')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
@@ -335,9 +335,9 @@ plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 ax = plt.subplot(gs[3])  ########################## RRT
 plt.title('d) RRT, hab = '+hab_moorings[3] +' m',fontsize=fs)
 data = w_rrt
-plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_rrt
-plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
+plt.hist(data,bins=w_e, weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label=label_croco[0])
 plt.ylabel(r' pdf [$\%$]')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
@@ -363,9 +363,9 @@ plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 ax = plt.subplot(gs[4])  ########################## ICW
 plt.title('e) ICW, hab = '+hab_moorings[4] +' m',fontsize=fs)
 data = w_icw
-plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_icw
-plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
+plt.hist(data,bins=w_e, weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label=label_croco[0])
 plt.ylabel(r' pdf [$\%$]')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
@@ -391,9 +391,9 @@ plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 ax = plt.subplot(gs[5])  ########################## ICM
 plt.title('f) ICM, hab = '+hab_moorings[5] +' m',fontsize=fs)
 data = w_icm
-plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_icm
-plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
+plt.hist(data,bins=w_e, weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label=label_croco[0])
 plt.ylabel(r' pdf [$\%$]')
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
 plt.axvline(x=100,color='k',linewidth=1,alpha=0.2)
@@ -419,9 +419,9 @@ plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
 ax = plt.subplot(gs[6])  ########################## ICE
 plt.title('g) ICE, hab = '+hab_moorings[6] +' m',fontsize=fs)
 data = w_ice
-plt.hist(data,bins=w_e,weights=np.ones(len(data)) / len(data),color='m',alpha=alpha_plot,label='-2060 m')
+plt.hist(data,bins=w_e,weights=(np.ones(len(data)) / len(data)),color='m',alpha=alpha_plot,label='-2060 m')
 data = wc_ice
-plt.hist(data,bins=w_e, weights=np.ones(len(data)) / len(data),color=cf0,alpha=alpha_plot,label=label_croco[0])
+plt.hist(data,bins=w_e, weights=(np.ones(len(data)) / len(data)),color=cf0,alpha=alpha_plot,label=label_croco[0])
 plt.ylabel(r' pdf [$\%$]')
 plt.xlabel(label_w)
 plt.axvline(x=0,color='k',linewidth=1,alpha=0.2)
@@ -443,6 +443,7 @@ if plot_log==True:
     plt.yscale('log')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 plt.gca().yaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
+
 if plot_log == True:
     plt.savefig('figure4.png',dpi=180,bbox_inches='tight')
 else:

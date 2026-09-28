@@ -125,6 +125,7 @@ def moy(wp, window_size):
 nc = Dataset(file_w_var,'r')
 wp = nc.variables['w'][:,:]
 nc.close()
+ntwp = np.shape(wp)[1]
 
 # ------------ read data longrun ------------ 
 data = Croco_longrun(name_exp,nbr_levels,time[0],name_exp_grd,name_pathdata)
@@ -239,17 +240,18 @@ idx     = 0
 
 listwrn = [ np.std(moy(wp[idx,:],2)),
             np.std(moy(wp[idx,:],2*7)), np.std(moy(wp[idx,:],2*30)),np.std(moy(wp[idx,:],2*2*30)),np.std(moy(wp[idx,:],2*3*30)),
-            np.std(moy(wp[idx,:],2*4*30)),np.std(moy(wp[idx,:],2*5*30)),np.std(moy(wp[idx,:],2*6*30)),np.std(moy(wp[idx,:],2*7*30))]
+            np.std(moy(wp[idx,:],2*4*30)),np.std(moy(wp[idx,:],2*5*30)),np.std(moy(wp[idx,:],2*6*30)),np.std(moy(wp[idx,:],ntwp))]
 idx = 1
 listwrs = [ np.std(moy(wp[idx,:],2)),
             np.std(moy(wp[idx,:],2*7)), np.std(moy(wp[idx,:],2*30)),np.std(moy(wp[idx,:],2*2*30)),np.std(moy(wp[idx,:],2*3*30)),
-            np.std(moy(wp[idx,:],2*4*30)),np.std(moy(wp[idx,:],2*5*30)),np.std(moy(wp[idx,:],2*6*30)),np.std(moy(wp[idx,:],2*7*30))]
+            np.std(moy(wp[idx,:],2*4*30)),np.std(moy(wp[idx,:],2*5*30)),np.std(moy(wp[idx,:],2*6*30)),np.std(moy(wp[idx,:],ntwp))]
 
 idx = 2
 listwap = [ np.std(moy(wp[idx,:],2)),
             np.std(moy(wp[idx,:],2*7)), np.std(moy(wp[idx,:],2*30)),np.std(moy(wp[idx,:],2*2*30)),np.std(moy(wp[idx,:],2*3*30)),
-            np.std(moy(wp[idx,:],2*4*30)),np.std(moy(wp[idx,:],2*5*30)),np.std(moy(wp[idx,:],2*6*30)),np.std(moy(wp[idx,:],2*7*30))]
+            np.std(moy(wp[idx,:],2*4*30)),np.std(moy(wp[idx,:],2*5*30)),np.std(moy(wp[idx,:],2*6*30)),np.std(moy(wp[idx,:],ntwp))]
 
+mean_rn, mean_rs, mean_ap = np.nanmean(wp[0,:]),np.nanmean(wp[1,:]),np.nanmean(wp[2,:])
 
 # --- plot ---
 print('------------- MAKE PLOT ------------')
@@ -260,27 +262,27 @@ gs = gridspec.GridSpec(4,3,height_ratios=[1,1,1,0.1],hspace=0.5,wspace=0.2)
 ax = plt.subplot(gs[0,:]) 
 plt.title('a)',fontsize=fs)
 xtime=np.arange(len(listwrn))
-plt.plot(xtime,listwrn,linestyle='--',c='r')
-plt.plot(xtime,listwrs,linestyle='--',c='k')
-plt.plot(xtime,listwap,linestyle='--',c='m')
-plt.scatter(xtime,listwrn,marker='x',c='r')
-plt.scatter(xtime,listwrs,marker='x',c='k')
-plt.scatter(xtime,listwap,marker='x',c='m')
-plt.axhline(y=1,c='k',linewidth=0.2,alpha=0.7)
-plt.axhline(y=10,c='k',linewidth=0.2,alpha=0.7)
-plt.axhline(y=100,c='k',linewidth=0.2,alpha=0.7)
-for iw in range(2,10):
-    plt.axhline(y=iw,c='k',linewidth=0.2,alpha=0.5)
-for iw in range(20,100,10):
-    plt.axhline(y=iw,c='k',linewidth=0.2,alpha=0.5)
-for iw in range(200,400,100):
+plt.axhline(y=mean_rn,c='r',linewidth=lw)
+plt.axhline(y=mean_rs,c='k',linewidth=lw)
+plt.axhline(y=mean_ap,c='m',linewidth=lw)
+ax.fill_between(xtime, mean_rn - listwrn, mean_rn + listwrn,
+                 color='r', alpha=0.25)
+ax.fill_between(xtime, mean_rs - listwrs, mean_rs + listwrs,
+                 color='k', alpha=0.25)
+ax.fill_between(xtime, mean_ap - listwap, mean_ap + listwap,
+                 color='m', alpha=0.25)
+plt.scatter(xtime,[mean_rn] * len(listwap),marker='x',c='r')
+plt.scatter(xtime,[mean_rs] * len(listwap),marker='x',c='k')
+plt.scatter(xtime,[mean_ap] * len(listwap),marker='x',c='m')
+plt.axhline(y=0,c='k',linewidth=0.4,alpha=0.5)
+for iw in range(-500,400,50):
     plt.axhline(y=iw,c='k',linewidth=0.2,alpha=0.5)
 plt.xticks([0,1,2,3,4,5,6,7,8],['1 day','7 days','30 days','60 days',
-                                  '90 days','120 days','150 days','180 days','219 days'])
-plt.yscale('log')
-plt.ylim(0,350)
+                                  '90 days','120 days','150 days','180 days','220 days'])
+plt.ylim(-510,250)
 plt.xticks(rotation=30)
-plt.ylabel(r'std($w_{hab=100m}$) [m.$day^{-1}$]')
+plt.ylabel(r'$w_{hab=100m}$ [m.$day^{-1}$]')
+
 ################################################################################### snapshot
 ax = plt.subplot(gs[1,0]) # ------------------------ w
 plt.title('b) Snapshot',fontsize=fs)
