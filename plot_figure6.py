@@ -44,10 +44,10 @@ name_exp_grd= ''
 nbr_levels  = '200'
 name_exp_saveup = name_exp_path
 var_list = ['zeta','w','AKt','bvf','salt','temp','u','v','hbbl']
-
 ndfiles     = 1  # number of days per netcdf
 rho0        = 1027.4
 g           = 9.81
+eps_b       = 1e-8
 # --- plot options --- 
 fs      = 30      # fontsize 
 lwc     = 0.5
@@ -188,7 +188,7 @@ simul = simul0
 t=var('temp',simul,depths=[0])
 [TXadv,TYadv,TVadv] = t.get_tracer_advection(simul); del t
 T = var('temp',simul).data; S = var('salt',simul).data
-b_adv_mean_save     = get_brhs(simul,T[:,:,:],S[:,:,:],\
+b_adv_mean_savei     = get_brhs(simul,T[:,:,:],S[:,:,:],\
                                 TXadv[:,:,:,0]+TYadv[:,:,:,0]+TVadv[:,:,:,0],\
                                 TXadv[:,:,:,1]+TYadv[:,:,:,1]+TVadv[:,:,:,1],z_r,z_w)
 #b_adv_mean_save[np.isnan(b_adv_mean_save)==1]=0
@@ -226,7 +226,11 @@ u    = tools.u2rho(data.var['u'])
 v    = tools.v2rho(data.var['v'])
 hbbl = data.var['hbbl']
 # ---> buoyancy balance 
-[b_rhs,b_adv] = data.get_buoyancy_balance(0)
+[b_rhsi,b_advi] = data.get_buoyancy_balance(0)
+b_rhs = np.where(np.abs(b_rhsi) > eps_b, np.nan, b_rhsi)
+b_adv = np.where(np.abs(b_advi) > eps_b, np.nan, b_advi)
+b_adv_mean_save = np.where(np.abs(b_advi) > eps_b, np.nan, b_adv_mean_savei)
+
 # ---> compute topostrophy
 dhdx = tools.u2rho((data.h[1:,:]-data.h[:-1,:]))*data.pm
 dhdy = tools.v2rho((data.h[:,1:]-data.h[:,:-1]))*data.pn
