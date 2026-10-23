@@ -314,18 +314,18 @@ for choice in range(len(choice_list)):
         hbbl_r[choice]   = np.median(hbbl_up)
         w10[choice,:]    = stats.binned_statistic(h_r,w_up,statistic=lambda y: np.nanpercentile(y, 10),bins=h_e)[0]
         w90[choice,:]    = stats.binned_statistic(h_r,w_up,statistic=lambda y: np.nanpercentile(y, 90),bins=h_e)[0]
-        w_r[choice,:]    = stats.binned_statistic(h_r,w_up,statistic='median',bins=h_e)[0]
-        u_r[choice,:]    = stats.binned_statistic(h_r,u_up,statistic='median',bins=h_e)[0]
-        v_r[choice,:]    = stats.binned_statistic(h_r,v_up,statistic='median',bins=h_e)[0]
-        to_r[choice,:]   = stats.binned_statistic(h_r,to_up,statistic='median',bins=h_e)[0]
-        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_up,statistic='median',bins=h_e)[0]
-        keff_r[choice,:] = stats.binned_statistic(h_r,keff_up,statistic=np.nanmedian,bins=h_e)[0]
+        w_r[choice,:]    = stats.binned_statistic(h_r,w_up,statistic='mean',bins=h_e)[0]
+        u_r[choice,:]    = stats.binned_statistic(h_r,u_up,statistic='mean',bins=h_e)[0]
+        v_r[choice,:]    = stats.binned_statistic(h_r,v_up,statistic='mean',bins=h_e)[0]
+        to_r[choice,:]   = stats.binned_statistic(h_r,to_up,statistic='mean',bins=h_e)[0]
+        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_up,statistic='mean',bins=h_e)[0]
+        keff_r[choice,:] = stats.binned_statistic(h_r,keff_up,statistic=np.nanmean,bins=h_e)[0]
         # on w-grid
-        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_up,statistic='median',bins=h_e)[0]
+        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_up,statistic='mean',bins=h_e)[0]
         # on rho-grid
-        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_up,statistic='median',bins=h_e)[0]
-        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_up,statistic='median',bins=h_e)[0]
-        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_up,statistic=np.nanmedian,bins=h_e)[0]
+        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_up,statistic='mean',bins=h_e)[0]
+        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_up,statistic='mean',bins=h_e)[0]
+        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_up,statistic=np.nanmean,bins=h_e)[0]
 
     elif choice==1 :         # downwelling N2>0
         hab_bblt[choice]     = np.nanmean(hab_bbl[area_r==9999])
@@ -349,17 +349,17 @@ for choice in range(len(choice_list)):
         hbbl_r[choice]   = np.median(hbbl_down)
         w10[choice,:]    = stats.binned_statistic(h_r,w_down,statistic=lambda y: np.nanpercentile(y, 10),bins=h_e)[0]
         w90[choice,:]    = stats.binned_statistic(h_r,w_down,statistic=lambda y: np.nanpercentile(y, 90),bins=h_e)[0]
-        w_r[choice,:]    = stats.binned_statistic(h_r,w_down,statistic='median',bins=h_e)[0]
-        u_r[choice,:]    = stats.binned_statistic(h_r,u_down,statistic='median',bins=h_e)[0]
-        v_r[choice,:]    = stats.binned_statistic(h_r,v_down,statistic='median',bins=h_e)[0]
-        to_r[choice,:]   = stats.binned_statistic(h_r,to_down,statistic='median',bins=h_e)[0]
-        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_down,statistic='median',bins=h_e)[0]
-        keff_r[choice,:] = stats.binned_statistic(h_r,keff_down,statistic=np.nanmedian,bins=h_e)[0]
+        w_r[choice,:]    = stats.binned_statistic(h_r,w_down,statistic='mean',bins=h_e)[0]
+        u_r[choice,:]    = stats.binned_statistic(h_r,u_down,statistic='mean',bins=h_e)[0]
+        v_r[choice,:]    = stats.binned_statistic(h_r,v_down,statistic='mean',bins=h_e)[0]
+        to_r[choice,:]   = stats.binned_statistic(h_r,to_down,statistic='mean',bins=h_e)[0]
+        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_down,statistic='mean',bins=h_e)[0]
+        keff_r[choice,:] = stats.binned_statistic(h_r,keff_down,statistic=np.nanmean,bins=h_e)[0]
         # on w-grid
-        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_down,statistic='median',bins=h_e)[0]
+        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_down,statistic='mean',bins=h_e)[0]
         # on rho-grid
-        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_down,statistic='median',bins=h_e)[0]
-        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_down,statistic='median',bins=h_e)[0]
+        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_down,statistic='mean',bins=h_e)[0]
+        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_down,statistic='mean',bins=h_e)[0]
         b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_down,statistic=np.nanmedian,bins=h_e)[0]
 
     elif choice==2:  # upwelling N2<0
@@ -385,18 +385,18 @@ for choice in range(len(choice_list)):
         hbbl_r[choice]   = np.median(hbbl_up)
         w10[choice,:]    = stats.binned_statistic(h_r,w_up,statistic=lambda y: np.nanpercentile(y, 10),bins=h_e)[0]
         w90[choice,:]    = stats.binned_statistic(h_r,w_up,statistic=lambda y: np.nanpercentile(y, 90),bins=h_e)[0]
-        w_r[choice,:]    = stats.binned_statistic(h_r,w_up,statistic='median',bins=h_e)[0]
-        u_r[choice,:]    = stats.binned_statistic(h_r,u_up,statistic='median',bins=h_e)[0]
-        v_r[choice,:]    = stats.binned_statistic(h_r,v_up,statistic='median',bins=h_e)[0]
-        to_r[choice,:]   = stats.binned_statistic(h_r,to_up,statistic='median',bins=h_e)[0]
-        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_up,statistic='median',bins=h_e)[0]
-        keff_r[choice,:] = stats.binned_statistic(h_r,keff_up,statistic=np.nanmedian,bins=h_e)[0]
+        w_r[choice,:]    = stats.binned_statistic(h_r,w_up,statistic='mean',bins=h_e)[0]
+        u_r[choice,:]    = stats.binned_statistic(h_r,u_up,statistic='mean',bins=h_e)[0]
+        v_r[choice,:]    = stats.binned_statistic(h_r,v_up,statistic='mean',bins=h_e)[0]
+        to_r[choice,:]   = stats.binned_statistic(h_r,to_up,statistic='mean',bins=h_e)[0]
+        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_up,statistic='mean',bins=h_e)[0]
+        keff_r[choice,:] = stats.binned_statistic(h_r,keff_up,statistic=np.nanmean,bins=h_e)[0]
         # on w-grid
-        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_up,statistic='median',bins=h_e)[0]
+        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_up,statistic='mean',bins=h_e)[0]
         # on rho-grid
-        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_up,statistic='median',bins=h_e)[0]
-        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_up,statistic='median',bins=h_e)[0]
-        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_up,statistic=np.nanmedian,bins=h_e)[0]
+        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_up,statistic='mean',bins=h_e)[0]
+        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_up,statistic='mean',bins=h_e)[0]
+        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_up,statistic=np.nanmean,bins=h_e)[0]
 
     elif choice==3 :         # downwelling N2<0
         hab_bblt[choice]     = np.nanmean(hab_bbl[area_r==-9999])
@@ -420,18 +420,18 @@ for choice in range(len(choice_list)):
         hbbl_r[choice]   = np.median(hbbl_down)
         w10[choice,:]    = stats.binned_statistic(h_r,w_down,statistic=lambda y: np.nanpercentile(y, 10),bins=h_e)[0]
         w90[choice,:]    = stats.binned_statistic(h_r,w_down,statistic=lambda y: np.nanpercentile(y, 90),bins=h_e)[0]
-        w_r[choice,:]    = stats.binned_statistic(h_r,w_down,statistic='median',bins=h_e)[0]
-        u_r[choice,:]    = stats.binned_statistic(h_r,u_down,statistic='median',bins=h_e)[0]
-        v_r[choice,:]    = stats.binned_statistic(h_r,v_down,statistic='median',bins=h_e)[0]
-        to_r[choice,:]   = stats.binned_statistic(h_r,to_down,statistic='median',bins=h_e)[0]
-        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_down,statistic='median',bins=h_e)[0]
-        keff_r[choice,:] = stats.binned_statistic(h_r,keff_down,statistic=np.nanmedian,bins=h_e)[0]
+        w_r[choice,:]    = stats.binned_statistic(h_r,w_down,statistic='mean',bins=h_e)[0]
+        u_r[choice,:]    = stats.binned_statistic(h_r,u_down,statistic='mean',bins=h_e)[0]
+        v_r[choice,:]    = stats.binned_statistic(h_r,v_down,statistic='mean',bins=h_e)[0]
+        to_r[choice,:]   = stats.binned_statistic(h_r,to_down,statistic='mean',bins=h_e)[0]
+        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_down,statistic='mean',bins=h_e)[0]
+        keff_r[choice,:] = stats.binned_statistic(h_r,keff_down,statistic=np.nanmean,bins=h_e)[0]
         # on w-grid
-        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_down,statistic='median',bins=h_e)[0]
+        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_down,statistic='mean',bins=h_e)[0]
         # on rho-grid
-        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_down,statistic='median',bins=h_e)[0]
-        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_down,statistic='median',bins=h_e)[0]
-        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_down,statistic=np.nanmedian,bins=h_e)[0]
+        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_down,statistic='mean',bins=h_e)[0]
+        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_down,statistic='mean',bins=h_e)[0]
+        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_down,statistic=np.nanmean,bins=h_e)[0]
 
     else:  # all grid
         hab_bblt[choice]   = np.nanmean(hab_bbl)
@@ -455,18 +455,18 @@ for choice in range(len(choice_list)):
         hbbl_r[choice]   = np.median(hbbl_ag)
         w10[choice,:]    = stats.binned_statistic(h_r,w_ag,statistic=lambda y: np.nanpercentile(y, 10),bins=h_e)[0]
         w90[choice,:]    = stats.binned_statistic(h_r,w_ag,statistic=lambda y: np.nanpercentile(y, 90),bins=h_e)[0]
-        w_r[choice,:]    = stats.binned_statistic(h_r,w_ag,statistic='median',bins=h_e)[0]
-        u_r[choice,:]    = stats.binned_statistic(h_r,u_ag,statistic='median',bins=h_e)[0]
-        v_r[choice,:]    = stats.binned_statistic(h_r,v_ag,statistic='median',bins=h_e)[0]
-        to_r[choice,:]   = stats.binned_statistic(h_r,to_ag,statistic='median',bins=h_e)[0]
-        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_ag,statistic='median',bins=h_e)[0]
-        keff_r[choice,:] = stats.binned_statistic(h_r,keff_ag,statistic=np.nanmedian,bins=h_e)[0]
+        w_r[choice,:]    = stats.binned_statistic(h_r,w_ag,statistic='mean',bins=h_e)[0]
+        u_r[choice,:]    = stats.binned_statistic(h_r,u_ag,statistic='mean',bins=h_e)[0]
+        v_r[choice,:]    = stats.binned_statistic(h_r,v_ag,statistic='mean',bins=h_e)[0]
+        to_r[choice,:]   = stats.binned_statistic(h_r,to_ag,statistic='mean',bins=h_e)[0]
+        kkpp_r[choice,:] = stats.binned_statistic(h_r,kkpp_ag,statistic='mean',bins=h_e)[0]
+        keff_r[choice,:] = stats.binned_statistic(h_r,keff_ag,statistic=np.nanmean,bins=h_e)[0]
         # on w-grid
-        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_ag,statistic='median',bins=h_e)[0]
+        N2_r[choice,:]       = stats.binned_statistic(hw_r,N2_ag,statistic='mean',bins=h_e)[0]
         # on rho-grid
-        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_ag,statistic='median',bins=h_e)[0]
-        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_ag,statistic='median',bins=h_e)[0]
-        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_ag,statistic=np.nanmedian,bins=h_e)[0]
+        b_rhs_r[choice,:]    = stats.binned_statistic(h_r,b_rhs_ag,statistic='mean',bins=h_e)[0]
+        b_adv_r[choice,:]    = stats.binned_statistic(h_r,b_adv_ag,statistic='mean',bins=h_e)[0]
+        b_mean_r[choice,:]   = stats.binned_statistic(h_r,b_adv_mean_save_ag,statistic=np.nanmean,bins=h_e)[0]
 
  
            
