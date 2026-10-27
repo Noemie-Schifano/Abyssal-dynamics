@@ -5,7 +5,7 @@ NS: Horizontal map of:
     Standard deviation of the vertical velocity as a function of the slope
     PSD of the vertical velocity at the deepest measurement of the mooring
         RRT and the interpolation from CROCO, both following the no-normal flow condition
-        
+    Need: "extract_std_w_moorings.py", "extract_w_bottom_croco.py" and "extract_bottom_w_moorings_croco_notracer.py" to run before        
 '''
 import numpy as np
 import matplotlib
